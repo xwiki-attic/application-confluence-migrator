@@ -50,6 +50,36 @@
       <artifactId>application-licensing-licensor-api</artifactId>
       <version>${licensing.version}</version>
     </dependency>
-    <!-- TODO -->
+    <dependency>
+      <!-- Confluence XML -->
+      <groupId>org.xwiki.contrib.confluence</groupId>
+      <artifactId>confluence-xml</artifactId>
+      <version>${confluence.xml.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <!-- Filter Streams Converter Application -->
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-filter-ui</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <!-- Nested Pages Migrator Application -->
+      <groupId>org.xwiki.contrib</groupId>
+      <artifactId>application-nestedpagesmigrator-ui</artifactId>
+      <version>${nestedpages.migrator.version}</version>
+      <type>xar</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <!-- Confluence Macros -->
+      <groupId>com.xwiki.confluence</groupId>
+      <artifactId>macros-confluence</artifactId>
+      <version>${confluence.macros.version}</version>
+      <type>xar</type>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
 </project>
