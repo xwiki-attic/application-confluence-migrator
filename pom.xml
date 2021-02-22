@@ -45,7 +45,7 @@
   </scm>
   <properties>
     <licensing.version>1.16.1</licensing.version>
-    <confluence.xml.version>9.4.4</confluence.xml.version>
+    <confluence.xml.version>9.6</confluence.xml.version>
     <nestedpages.migrator.version>0.7</nestedpages.migrator.version>
     <confluence.macros.version>1.0</confluence.macros.version>
   </properties>
@@ -97,8 +97,28 @@
         <version>${rendering.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.xwiki.rendering</groupId>
+        <artifactId>xwiki-rendering-macro-message</artifactId>
+        <version>${rendering.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.xwiki.platform</groupId>
         <artifactId>xwiki-platform-filter-event-model</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-tree-webjar</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-webjars-api</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-security-script</artifactId>
         <version>${platform.version}</version>
       </dependency>
     </dependencies>
