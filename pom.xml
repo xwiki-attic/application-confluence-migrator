@@ -47,7 +47,7 @@
     <licensing.version>1.16.1</licensing.version>
     <confluence.xml.version>9.8</confluence.xml.version>
     <nestedpages.migrator.version>0.7</nestedpages.migrator.version>
-    <confluence.macros.version>1.0</confluence.macros.version>
+    <pro.macros.version>1.0</pro.macros.version>
   </properties>
    <dependencyManagement>
     <dependencies>

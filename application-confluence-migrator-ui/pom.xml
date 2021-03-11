@@ -75,9 +75,9 @@
     </dependency>
     <dependency>
       <!-- Confluence Macros -->
-      <groupId>com.xwiki.confluence</groupId>
-      <artifactId>macros-confluence</artifactId>
-      <version>${confluence.macros.version}</version>
+      <groupId>com.xwiki.pro</groupId>
+      <artifactId>xwiki-pro-macros</artifactId>
+      <version>${pro.macros.version}</version>
       <type>xar</type>
       <scope>runtime</scope>
     </dependency>
