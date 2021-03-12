@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="Confluence.Tools.ImportingProcessGeneric.WebHome" locale="">
+  <web>Confluence.Tools.ImportingProcessGeneric</web>
+  <name>WebHome</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1614007896000</creationDate>
+  <parent>Confluence.Tools.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1614602897000</date>
+  <contentUpdateDate>1614602897000</contentUpdateDate>
+  <version>1.1</version>
+  <title>Importing Process Generic</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>This document presents how importing of large spaces should be performed.
+
+{{toc start="2"/}}
+
+== Confluence side ==
+
+=== Cleaning up the source Confluence space ===
+
+It might be needed to do some precleaning of the Confluence space, truncating page names that are by themselves to long (to close to 255) or removing very large attachments that could cause renaming issues (on 11.10). Finally if there are very deep hierarchies we might need to move them or shorten them.
+
+The following processes with cut page name to less than 30 characters. This allows 8 level of hierarchies if all pages are 30 characters, and slightly more if some are shorter. Ideally the page titles (which will become the page names in XWiki) at the top of the hierarchy should be as short as possible if the hierarchy is deep.
+
+The [[ConfluenceSpaceAnalysis&gt;&gt;Confluence.Tools.ConfluenceSpaceAnalysis.WebHome]] allows to detect pages that are too long and will not import. It also allows to count the number of pages that should be imported. This tool will require a "Confluence API token" to connect to the live Confluence instance.
+
+=== Confluence Export ===
+
+Run a full export of a the Confluence space from the "Content Tools" / "Export"
+
+== XWiki Side ==
+
+=== Memory Settings ===
+
+XWiki should be set with very large memory settings, high cache:
+
+* Set -Xmx and -Xms to half the memory of the machine (16g for 32g RAM)
+* Set cache to 5000 in xwiki.cfg (instead of 500)
+* deactivate notifications in xwiki.properties (optional)
+
+=== Extension Installation ===
+
+In [[main wiki&gt;&gt;path:/xwiki/bin/admin/XWiki/XWikiPreferences?editor=globaladmin&amp;section=XWiki.Extensions]]:
+
+* Install [[Listener extension&gt;&gt;path:/xwiki/bin/admin/XWiki/XWikiPreferences?section=XWiki.Extensions&amp;search=listerner+admin&amp;repo=&amp;extensionId=org.xwiki.contrib.listeneradmin%3Aapplication-listener-admin-ui&amp;extensionVersion=1.0.1&amp;extensionNamespace=wiki%3Axwiki]]
+
+Create a subwiki to receive the imported data.
+
+{{velocity}}
+* XWiki Extensions installation
+** Install [[Filter Streams&gt;&gt;path:/xwiki/wiki/${xcontext.database}/admin/XWiki/XWikiPreferences?section=XWiki.Extensions&amp;search=filter+streams&amp;repo=recommended&amp;extensionId=org.xwiki.platform%3Axwiki-platform-filter-ui&amp;extensionVersion=11.10.11&amp;extensionNamespace=wiki%3A${xcontext.database}]]
+** Install [[Confluence XML&gt;&gt;path:/xwiki/wiki/${xcontext.database}/admin/XWiki/XWikiPreferences?section=XWiki.Extensions&amp;search=confluence+xml&amp;repo=&amp;extensionId=org.xwiki.contrib.confluence%3Aconfluence-xml&amp;extensionVersion=9.9&amp;extensionNamespace=wiki%3A${xcontext.database}]]
+** Install [[Job Macro&gt;&gt;path:/xwiki/wiki/${xcontext.database}/admin/XWiki/XWikiPreferences?section=XWiki.Extensions&amp;search=job+macro&amp;repo=&amp;extensionId=org.xwiki.contrib%3Amacro-job&amp;extensionVersion=1.5&amp;extensionNamespace=wiki%3A${xcontext.database}]]
+{{/velocity}}
+
+=== Deactivate heavy processes ===
+
+* Deactivate notifications in xwiki.properties (optional)
+* Deactivate notifications on your own profile ("never" for automatic page watching, disable page notifications)
+* Clean Notifications: run [[Confluence.Tools.CleanNotificationsPrefs]] (optional)
+* Deactivate SOLR and Notifications listeners: XWiki.ListenerAdmin page on main wiki:
+** (optional, as this would disable SOLR indexing for the whole farm) [[SolrIndexEventListener&gt;&gt;path:/xwiki/bin/view/XWiki/ListenerAdmin?language=#|t=listeners&amp;p=1&amp;l=8&amp;s=listenerName&amp;d=asc&amp;listenerClass=solr]]
+** [[DocumentMovedListener, AutomaticWatchModeListener, LiveNotificationEmailListener&gt;&gt;path:/xwiki/bin/view/XWiki/ListenerAdmin?language=#|t=listeners&amp;p=1&amp;l=8&amp;s=listenerName&amp;d=asc&amp;listenerClass=notifications]] (important for large spaces)
+
+=== Modify Nested Spaces Migrator ===
+
+This change is important to avoid failure of the Nested Page Migrator on the DocumentMovedListener.
+
+{{velocity}}
+* Edit object on [[NestedPagesMigration&gt;&gt;path:/xwiki/wiki/${xcontext.database}/edit/NestedPagesMigration/WebHome?editor=object]]
+* Open 2nd Javascript Object, line 49:
+{{/velocity}}
+
+Change 255 to 245:
+
+    self.isTooLong = function () {
+      return self.serializedTargetDocument().length &gt; 245;
+    }
+
+The number depends on the length of the wiki name. If the wiki ID is longer then more margin is needed.
+
+=== Confluence Import ===
+
+Go to the [[Filter streams application&gt;&gt;Filter.WebHome]]
+
+Run the Confluence import. Make sure the following settings are used:
+
+* verbose -&gt; false
+* import users -&gt; false
+* prefixed macros -&gt; chart
+* preserve versions -&gt; true
+* stop when document save fail -&gt; false
+
+This process can take a few hours depending of the size of the import.
+
+=== Check Parents ===
+
+Use the [[CheckParents&gt;&gt;Confluence.Tools.CheckParents]] script to verify if we have many pages without parents.
+
+Pages without parents will probably not be places in the final hierarchy.
+
+It is acceptable if there is a limited version of pages without parents.
+
+=== Fix Parents ===
+
+The [[FixParents&gt;&gt;Confluence.Tools.FixParents]] will modify the parent value of document having a parent containing a dot, to avoid further problems in the importing process. Use the "confirm" link after preview to launch the task.
+
+This is **very important** ! Without it the hierarchy might be lost.
+
+This process can be run in batches of 3000 or less until there are none left to convert. 
+Verify at the end that no pages are left to be converted by rerunning this script.
+
+{{info}}
+This process might not be needed in future versions of XWiki as it is needed to workaround a product bug
+{{/info}}
+
+=== Long Page Name conversion ===
+
+Go to [[Long Page Names migration&gt;&gt;Confluence.Tools.LongPageNames]]. Uncheck the "test run only", otherwise it won't perform the task. At the end of the task rerun the task to check if there are still pages to convert.
+
+This process will reduce the page name length for page names of more than 30 characters. This is needed as the combination of page names in a single hierarchy cannot exceed 255 characters in XWiki. This is the main script avoiding Nested Pages Migrator reporting errors at the "compute plan" step.
+
+The title of the page will not change, only the page name.
+
+The algorithm used is by splitting the current page name by words and keep up to 20 characters by combining the works. Special characters will be excluded.
+
+For example the page name
+
+2020-12-03: Importing project of Confluence data in XWiki
+
+would become:
+
+2020 12 02 Importing project
+
+This process is very long and runs in a job.
+
+=== Handle documents having lost their parents ===
+
+Go to [[Check Invalid Parents&gt;&gt;Confluence.Tools.CheckInvalidParents]]
+
+Normally there should not be any remaining pages reported by this tool.
+
+=== Nested Pages Migration "Compute Plan" ===
+
+Go to the [[Nested Pages Migrations app&gt;&gt;NestedPagesMigration.WebHome]]
+
+The next step is to run a "Compute Plan" on the nested pagees migration tool.
+
+This will allow to check if we still have too long page names even with the 30 pages conversion.
+
+In this case we might require a special renaming for certain pages.
+
+=== Nested Pages Migration "Execute Plan" ===
+
+This step can only be executed if there are not errors indicating too long page names in the "Compute Plan" section. It is possible to manually move branches in the "Compute Plan" section to make final page names shorter, before running "Execute Plan".
+
+Once launched this process is irreversible. Either the VM needs to be snaphoted or the Confluence imports restarted from scratch.</content>
+</xwikidoc>

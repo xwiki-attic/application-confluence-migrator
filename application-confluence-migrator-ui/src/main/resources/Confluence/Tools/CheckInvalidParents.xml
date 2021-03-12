@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.3" reference="Confluence.Tools.CheckInvalidParents" locale="">
+  <web>Confluence.Tools</web>
+  <name>CheckInvalidParents</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1613502695000</creationDate>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1613548762000</date>
+  <contentUpdateDate>1613548762000</contentUpdateDate>
+  <version>1.1</version>
+  <title>CheckInvalidParents</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>{{groovy}}
+def escapetool = new org.xwiki.velocity.tools.EscapeTool()
+def space = "";
+def nb = 10
+if (request.space)
+ space = request.space
+if (request.nb)
+ nb = Integer.parseInt(request.nb)
+
+println """
+{{html clean=false}}
+&lt;form action=""&gt;
+Space name: &lt;input type="text" name="space" value="${escapetool.xml(space)}" size="60" /&gt;&lt;br /&gt;
+Nb: &lt;input type="text" name="nb" value="${escapetool.xml(nb)}" size="10" /&gt;&lt;br /&gt;
+&lt;input name="submit" type="submit" value="Go" class="button" /&gt;
+&lt;/form&gt;
+{{/html}}
+"""
+
+ public getNameProposal(name, space, log, newNameList, maxLength) {
+    def splitname = name.replaceAll("/","_").replaceAll("[.]","_").replaceAll(" _ ", "_").replaceAll("[^\\dA-Za-z_ ]"," ").replaceAll('_', " ")replaceAll("\\s+"," ").split(' ')
+    def newname = splitname[0]
+    def scounter = 1
+    while (newname.replaceAll("[0-9_]","")=="" || newname.size()&lt;20) {
+      if (scounter&gt;5)
+        break;
+      if (scounter&gt;=splitname.size())
+        break;
+      if ((newname.size() + splitname[scounter].size()) &gt; maxLength)
+        break;
+      newname += " " + splitname[scounter]
+      scounter++;
+    }
+
+    if (newname.endsWith("_")||newname.endsWith("_"))
+     newname = newname.substring(0, newname.length()-1)
+
+    def count = 1
+    def newname2 = newname;
+    while (newNameList.contains(newname2) || xwiki.exists(space + "." + newname2)) {
+      newname2 = newname + "_" + count;
+      count++;
+      log.info("Duplicate found");
+      duplicates++;
+    }
+    newNameList.add(newname2)
+    return newname2;
+   }
+if (request.space) {
+  duplicates = 0
+  def nbconversions = 0
+  def nbfailed = 0
+  def nbnotneeded = 0
+  def newnamelist = []
+  def log = services.logging.getLogger(doc.fullName)
+  def list = xwiki.search("select doc.name, doc.fullName, doc.parent from XWikiDocument as doc where doc.web='${space}' and ((length(doc.parent)&gt;200 and doc.parent not like '${request.space}%') or (length(doc.parent)&gt;200 and doc.parent like '${request.space}%')) order by doc.name", nb, 0)
+  println "Number of too long parents: ${list.size()}"
+  for (item in list) {
+    def name = item[0]
+    def fullName = item[1]
+    def parent = item[2]
+    println "* doc fullname: ${fullName}"
+    println "** parent: ${parent}"
+    def list2 = xwiki.searchDocuments("where doc.web='${space}' and doc.title=?", 0, 0, [ parent.replaceAll("\\\\", "") ])
+    println "** ${list2.size()} ${list2}"
+    if (list2.size()==1) {
+      def realparentname = list2[0]
+      if ((realparentname != parent) &amp;&amp; (realparentname != request.space + "." + parent)) {
+      println "** real parent ${realparentname}"
+      nbconversions++;
+      if (request.confirm) {
+        def itemdoc = xwiki.getDocument(fullName)
+        itemdoc.setParent(realparentname)
+        itemdoc.save("Restoring parent document")
+      }
+      } else {
+      println "** same real parent ${realparentname}"        
+      }
+    } else {
+      def itemparentdoc = xwiki.getDocument(request.space + "." + parent)
+      if (itemparentdoc.isNew()) {
+        println "** could not find parent. failed."
+        if (request.confirm=="2") {
+          def newparentName = getNameProposal(parent, space, log, newnamelist, 30)
+          def newparentDoc = xwiki.getDocument(space + "." + newparentName);
+          def newparentTitle = parent;
+          if (parent.size()&gt;250)
+           newparentTitle = parent.substring(0, 250);
+          newparentDoc.setTitle(newparentTitle)
+          newparentDoc.save("Confluence import missing document")
+          def itemdoc = xwiki.getDocument(fullName)
+          itemdoc.setParent(newparentName)
+          itemdoc.save("New parent document")
+        }
+        nbfailed++;
+      } else {
+        println "** parent already exists. no conversion needed."
+        nbnotneeded++;
+      }
+    }
+  }
+
+println ""
+println ""
+println "Number of too long names: ${list.size()}"
+println "Number of conversions: ${nbconversions}"
+println "Nb not needed: ${nbnotneeded}"
+println "Nb failed: ${nbfailed}"
+println """[[Confirm page name length reduction&gt;&gt;||queryString="confirm=2&amp;space=${request.space}&amp;nb=${request.nb}"]]"""
+}
+
+{{/groovy}}</content>
+</xwikidoc>

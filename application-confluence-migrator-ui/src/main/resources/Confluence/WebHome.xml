@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="Confluence.WebHome" locale="">
+  <web>Confluence</web>
+  <name>WebHome</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1606777200000</creationDate>
+  <parent>Confluence.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1606777200000</date>
+  <contentUpdateDate>1606777200000</contentUpdateDate>
+  <version>1.1</version>
+  <title>Confluence Import documentation and tools</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>
+This package is here to help import Confluence data into XWiki.
+
+{{toc start=2 /}}
+
+== Import Process ==
+
+In order to import Confluence data inside XWiki the process is the following:
+
+1. Export Confluence data
+1. Import Confluence data in XWiki using Filter Streams and the Confluence XML filter.
+1. Run XWiki Nested Spaces migrator to transform Confluence's parent-child relation ship in XWiki Nested Spaces.
+1. Install the Confluence macro pack which includes the Confluence bridge macros, the Confluence Macro pack and the XWiki macros used in the bridge macros.
+
+Or install individually:
+
+1. Install Confluence Bridge Macros to bridge Confluence macros to XWiki macros.
+1. Install the XWiki macros you need used by the Bridge macros
+
+== Confluence Tools ==
+
+This package contains a set of confluence tools allowing to detect which macros are used in your imported Confluence pages
+
+== Confluence Bridge Macros ==
+
+A set of Confluence bridge macros are available to help bridge Confluence macro to similar XWiki macros.
+
+== Confluence Macros ==
+
+A set of macros are provided that implement the Confluence macros.</content>
+</xwikidoc>

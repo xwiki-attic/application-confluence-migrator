@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.3" reference="Confluence.Tools.DetectPageNameTooLong" locale="">
+  <web>Confluence.Tools</web>
+  <name>DetectPageNameTooLong</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>WebHome</parent>
+  <creationDate>1612801191000</creationDate>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1613548667000</date>
+  <contentUpdateDate>1613548667000</contentUpdateDate>
+  <version>1.1</version>
+  <title>Detect too long page Names</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>{{groovy}}
+def escapetool = new org.xwiki.velocity.tools.EscapeTool()
+def space = "";
+def nb = 10
+def maxlength = 30
+if (request.space)
+ space = request.space
+if (request.nb)
+ nb = Integer.parseInt(request.nb)
+
+println """
+{{html clean=false}}
+&lt;form action=""&gt;
+Space name: &lt;input type="text" name="space" value="${escapetool.xml(space)}" size="60" /&gt;&lt;br /&gt;
+Nb: &lt;input type="text" name="nb" value="${escapetool.xml(nb)}" size="10" /&gt;&lt;br /&gt;
+&lt;input name="submit" type="submit" value="Go" class="button" /&gt;
+&lt;/form&gt;
+{{/html}}
+"""
+
+if (request.space) {
+  def duplicates = 0
+  def nbconversions = 0
+  def newnamelist = []
+  def list = xwiki.search("select doc.name, doc.fullName from XWikiDocument as doc where doc.web='${space}' and length(doc.name)&gt;${maxlength} order by doc.name", nb, 0)
+  println "Number of too long names: ${list.size()}"
+  for (item in list) {
+    def name = item[0]
+    def fullName = item[1]
+    println "* ${fullName}"
+    def sname = name.replaceAll("/","_").replaceAll("[.]","_").replaceAll(" _ ", "_").replaceAll("[^\\dA-Za-z_ ]"," ").replaceAll('_', " ")replaceAll("\\s+"," ")
+    splitname = sname.split(' ')
+    println "** Cleaned name: ${sname}"
+    def newname = splitname[0]
+    def scounter = 1
+    while (newname.replaceAll("[0-9_]","")=="" || newname.size()&lt;20) {
+      if (scounter&gt;5)
+        break;
+      if (scounter&gt;=splitname.size())
+        break;
+      if ((newname.size() + splitname[scounter].size()) &gt; maxlength)
+        break;
+      newname += " " + splitname[scounter]
+      scounter++;
+    }
+
+    if (newname.endsWith("_")||newname.endsWith("_"))
+     newname = newname.substring(0, newname.length()-1)
+
+    def count = 1
+    def newname2 = newname;
+    while (newnamelist.contains(newname2) || xwiki.exists(space + "." + newname2)) {
+      newname2 = newname + "_" + count;
+      count++;
+      println "** Duplicate found"
+      duplicates++;
+    }
+    if (newname2.size()&gt;=name.size()) {
+     println "** New name proposal: ${newname2}"
+     println "** New name proposal is too long. No conversion."
+    } else {
+     nbconversions++;
+     newnamelist.add(newname2)
+     println "** New name proposal: ${newname2}"
+     println "** Name proposal length: ${newname2.size()}"
+    }
+  }
+
+println ""
+println ""
+println "Number of too long names: ${list.size()}"
+println "Number of conversions: ${nbconversions}"
+println "Found duplicated: ${duplicates}"
+println """[[Confirm page name length reduction&gt;&gt;||queryString="confirm=1"]]"""
+}
+
+{{/groovy}}</content>
+</xwikidoc>

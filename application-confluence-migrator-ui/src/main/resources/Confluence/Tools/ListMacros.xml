@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.3" reference="Confluence.Tools.ListMacros" locale="">
+  <web>Confluence.Tools</web>
+  <name>ListMacros</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1611774072000</creationDate>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1613744870000</date>
+  <contentUpdateDate>1613744870000</contentUpdateDate>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity}}
+  $xwiki.jsfx.use("js/xwiki/table/tablefilterNsort.js", true)
+  $xwiki.ssfx.use("js/xwiki/table/table.css")
+{{/velocity}}
+
+{{groovy}}
+import java.util.regex.*;
+
+def escapetool = new org.xwiki.velocity.tools.EscapeTool()
+def space = "";
+if (request.space)
+ space = request.space
+
+if (request.showall) {
+  showall = "checked"
+  showmissing = ""
+} else {
+  showall = ""
+  showmissing = "checked"
+}
+
+println """
+{{html clean=false}}
+&lt;form action=""&gt;
+Space name: &lt;input type="text" name="space" value="${escapetool.xml(space)}" size="60" /&gt;&lt;br /&gt;
+&lt;input type="radio" name="showall" value="1" ${showall} /&gt; All macros &lt;input type="radio" name="showall" value="0" ${showmissing} /&gt; Only missing macros&lt;br /&gt;
+&lt;input name="submit" type="submit" value="Go" class="button" /&gt;
+&lt;/form&gt;
+{{/html}}
+"""
+  
+if (request.submit) {
+def currentMacros = services.query.xwql("select macro.id from Document as doc, doc.object(XWiki.WikiMacroClass) as macro").execute()
+for (mname in ["id", "toc", "jira", "children", "include", "warning", "info", "code", "html", "velocity", "groovy"]) {
+   currentMacros.add(mname)
+}
+
+def pattern = Pattern.compile(".*[^{]\\{\\{([a-zA-Z].*?)([/} ]).*\\}\\}.*")
+def list = new ArrayList()
+def mapExamples = new HashMap()
+def mapCount = new HashMap()
+def details = ""
+def start = 0
+def nb = 500
+if (request.start)
+  start = Integere.parseInt(request.start)
+if (request.nb)
+  nb = Integer.parseInt(request.nb)
+
+def dlist = xwiki.searchDocuments("where doc.space like '${space}%' and doc.content like '%{{%' and doc.hidden = false")
+println "* Found ${dlist.size()} documents with macros"
+
+dlist = xwiki.searchDocuments("where doc.space like '${space}%' and doc.content like '%{{%' and doc.hidden = false", nb, start)
+println "* Found ${dlist.size()} documents with macros"
+for(item in dlist) {
+ def itemdoc = xwiki.getDocument(item)
+ if (itemdoc!=null) {
+ def docContent = itemdoc.content
+ def m = pattern.matcher(docContent);
+
+ def docNameShown = false
+ while (m.find()) {
+    def macroName = m.group(1)
+    if ((!currentMacros.contains(macroName.toString()))||request.showall=="1") {
+     if (!list.contains(macroName))
+      list.add(macroName);
+     if (!mapExamples.get(macroName))
+      mapExamples.put(macroName, [ "page" : item, "line" : m.group(0) ])
+     if (!mapCount.get(macroName)) {
+       mapCount.put(macroName, 1)
+     } else {
+       def nbc = mapCount.get(macroName)
+       mapCount.put(macroName, nbc + 1)
+     }
+     if (!docNameShown) {
+      details += "* [[${item}]]\n"
+      docNameShown = true;
+     }
+      details += "{{{ ${m.group(0)} : ${macroName} }}}\n"
+    }
+  }
+ }
+}
+
+def result = "= Macro count =\n"
+result += "\n"
+result += """(% class="grid sortable filterable doOddEven" id="macrolist" %)\n"""
+result += """(% class="sortHeader"%)|= Macro |= Count |= Example page |= Example usage\n"""
+for (macro in list) {
+ def page = mapExamples.get(macro).page
+ def line = mapExamples.get(macro).line
+ def count = 0
+ try {
+    def query = "where doc.space like '${space}%' and (doc.content like '%{{${macro} %' or doc.content like '%{{${macro}%/')"
+    count = mapCount.get(macro)
+ } catch (e) {
+   count = -1;
+ }
+ result += "|${macro}|${count}|[[${page}]]|{{{ ${line} }}}\n"
+}
+
+def resdoc = xwiki.getDocument("Confluence.Tools.ListMacrosResults")
+resdoc.setContent(result)
+resdoc.save("Saving list macro results")
+
+println ""
+println result
+
+def result2 = "= Details ="
+result2 += ""
+result2 += details
+
+def resdoc2 = xwiki.getDocument("Confluence.Tools.ListMacrosResultsDetails")
+resdoc2.setContent(result2)
+resdoc2.save("Saving list macro results details")
+}
+{{/groovy}}</content>
+</xwikidoc>

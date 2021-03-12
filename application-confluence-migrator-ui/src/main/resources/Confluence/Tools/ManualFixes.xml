@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.3" reference="Confluence.Tools.ManualFixes" locale="">
+  <web>Confluence.Tools</web>
+  <name>ManualFixes</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1613568793000</creationDate>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1613568800000</date>
+  <contentUpdateDate>1613568800000</contentUpdateDate>
+  <version>1.1</version>
+  <title>Manual Fixes</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>{{groovy}}
+def updateParent(space, docname, newparent, confirm) {
+  def result = "* Updating parent of ${docname}\n"
+  result += "** To ${newparent}\n"
+  
+   def itemdoc = xwiki.getDocument(space + "." + docname)
+   if (!itemdoc.isNew()) {
+    if (confirm) {
+     itemdoc.setParent(newparent)
+     itemdoc.save("Manuel parent fix")
+     result += "** Update done\n"
+    }
+   } else {
+     result += "** Document does not exist\n"
+   }
+  return result;
+}
+
+def space = "KHNYG";
+def confirm = false;
+if (request.confirm) {
+  confirm = true;
+}
+
+   println updateParent(space, "Activity Filter", "PE-PDS-37 PAS", confirm)
+   println updateParent(space, "Automatic", "PE-PDS-37 PAS", confirm)
+   println updateParent(space, "Enter Location", "PE-PDS-37 PAS", confirm)
+   println updateParent(space, "Select Track 1", "PE-PDS-37 PAS", confirm)
+   println updateParent(space, "Filter Refreshes", "PE-PDS-37 PAS", confirm)
+   println updateParent(space, "Activity Select All", "PE-PDS-37 PAS", confirm)
+   println updateParent(space, "Early Departure", "PE-PDS-37 PAS", confirm)
+   println updateParent(space, "Blank", "PE-PDS-37 PAS", confirm)
+   println updateParent(space, "Earliest Departure", "PE-PDS-37 PAS", confirm)
+   println updateParent(space, "Enter Earliest Departure", "PE-PDS-37 PAS", confirm)
+   println updateParent(space, "Set EDT", "PE-PDS-37 PAS", confirm)
+   println updateParent(space, "Filter Complete", "PE-PDS-37 PAS", confirm)
+   println updateParent(space, "Select All EDT", "PE-PDS-37 PAS", confirm)
+   println updateParent(space, "Final Screen with All", "PE-PDS-37 PAS", confirm)
+   // println updateParent(space, "&lt;docname&gt;", "&lt;newparent&gt;", confirm)  
+
+if (!confirm) {
+  println """[[Confirm manual fixes&gt;&gt;||queryString="confirm=1"]]"""
+}
+
+{{/groovy}}</content>
+</xwikidoc>
