@@ -1,7 +1,7 @@
 # Depend on the main CI configuration, that will provide most of the environment configuration and jobs definition
 include:
   - project: ci/resources
-    branch: v1.0
+    branch: master
     file: /ci.yml
 
 variables:
