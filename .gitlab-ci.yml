@@ -1,0 +1,28 @@
+# Depend on the main CI configuration, that will provide most of the environment configuration and jobs definition
+include:
+  - project: ci/resources
+    branch: v1.0
+    file: /ci.yml
+
+variables:
+  # Below is the minimal set of project-specific variables that need to be defined in order for the CI to run properly. Please refer to the main CI configuration for more options.
+
+  # Configuration variables for the instance where the project snapshots will be deployed. Leave the following variables as-is if you don't care about deploying snasphots.
+  # The rest URL to the wiki
+  XWIKI_SNAPSHOT_REST_URL: "https://confluence-migrator-staging.devxwiki.com/xwiki/rest"
+  # In order to connect to the server, XWiki will need to use an administrator account. You will need to
+  # define the variables XWIKI_SNAPSHOT_USER and XWIKI_SNAPSHOT_PASSWORD as secrets in the CI configuration of the project
+
+  # Configuration variables for the instance where the project releases will be deployed.
+  # Please refer to the snapshot instance configuration for more information on the variables to be defined.
+  XWIKI_RELEASE_REST_URL: "https://confluence-migrator-staging.devxwiki.com/xwiki/rest"
+   
+  # Define the extensions that should be installed on the snapshot and release instances.
+  # For each of the namespaces on which one or multiple extensions should be installed, define a variable EXTENSION_IDS_NAMESPACE (replacing NAMESPACE by the name of your namespace, all caps)
+  # Then, the value of this variable should be a space sparated list of extension IDs.
+  # The following example installs the job macro and the publication workflow application on the "xwiki" namespace :
+  EXTENSION_IDS_XWIKI: "com.xwiki.confluence:application-confluence-migrator-ui"
+
+# Automatically deploy and install snapshot versions
+deploy_snapshot_version:
+  when: on_success
