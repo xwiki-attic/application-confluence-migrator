@@ -81,5 +81,28 @@
       <type>xar</type>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <!-- JQuery Smart Wizard -->
+      <groupId>org.webjars.npm</groupId>
+      <artifactId>smartwizard</artifactId>
+      <version>${smart.wizard.version}</version>
+      <type>jar</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <!-- Job Macro -->
+      <groupId>org.xwiki.contrib</groupId>
+      <artifactId>macro-job</artifactId>
+      <version>${macro.job.version}</version>
+      <type>jar</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-office-ui</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
 </project>

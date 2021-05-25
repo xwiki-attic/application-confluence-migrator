@@ -28,11 +28,8 @@
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
   <parent>WebHome</parent>
-  <creationDate>1612801191000</creationDate>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1613548667000</date>
-  <contentUpdateDate>1613548667000</contentUpdateDate>
   <version>1.1</version>
   <title>Detect too long page Names</title>
   <comment/>

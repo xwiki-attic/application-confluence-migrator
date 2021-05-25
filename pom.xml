@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.parent</groupId>
     <artifactId>xwikisas-parent-platform</artifactId>
-    <version>9.11-5</version>
+    <version>10.11</version>
   </parent>
   <groupId>com.xwiki.confluence</groupId>
   <artifactId>application-confluence-migrator</artifactId>
@@ -44,17 +44,40 @@
     <tag>HEAD</tag>
   </scm>
   <properties>
-    <licensing.version>1.16.1</licensing.version>
-    <confluence.xml.version>9.8</confluence.xml.version>
+    <licensing.version>1.18</licensing.version>
+    <confluence.xml.version>9.12</confluence.xml.version>
     <nestedpages.migrator.version>0.7</nestedpages.migrator.version>
     <pro.macros.version>1.0</pro.macros.version>
+    <smart.wizard.version>5.1.1</smart.wizard.version>
+    <macro.job.version>1.5.1</macro.job.version>
+    <commons.lang3.version>3.11</commons.lang3.version>
   </properties>
    <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-oldcore</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.commons</groupId>
+        <artifactId>xwiki-commons-job</artifactId>
+        <version>${commons.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
         <artifactId>xwiki-platform-model</artifactId>
         <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-rendering-parser</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.rendering</groupId>
+        <artifactId>xwiki-rendering-transformation-macro</artifactId>
+        <version>${rendering.version}</version>
       </dependency>
       <dependency>
         <groupId>org.xwiki.commons</groupId>
@@ -62,19 +85,9 @@
         <version>${commons.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.xwiki.commons</groupId>
-        <artifactId>xwiki-commons-filter-xml</artifactId>
-        <version>${commons.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.xwiki.platform</groupId>
         <artifactId>xwiki-platform-query-manager</artifactId>
         <version>${platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.xwiki.rendering</groupId>
-        <artifactId>xwiki-rendering-wikimodel</artifactId>
-        <version>${rendering.version}</version>
       </dependency>
       <dependency>
         <groupId>org.xwiki.rendering</groupId>
@@ -87,23 +100,13 @@
         <version>${rendering.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.xwiki.rendering</groupId>
-        <artifactId>xwiki-rendering-syntax-plain</artifactId>
-        <version>${rendering.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.xwiki.rendering</groupId>
-        <artifactId>xwiki-rendering-syntax-wikimodel</artifactId>
-        <version>${rendering.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.xwiki.rendering</groupId>
-        <artifactId>xwiki-rendering-macro-message</artifactId>
-        <version>${rendering.version}</version>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-filter-event-model</artifactId>
+        <version>${platform.version}</version>
       </dependency>
       <dependency>
         <groupId>org.xwiki.platform</groupId>
-        <artifactId>xwiki-platform-filter-event-model</artifactId>
+        <artifactId>xwiki-platform-rendering-signature</artifactId>
         <version>${platform.version}</version>
       </dependency>
       <dependency>
@@ -120,6 +123,31 @@
         <groupId>org.xwiki.platform</groupId>
         <artifactId>xwiki-platform-security-script</artifactId>
         <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.rendering</groupId>
+        <artifactId>xwiki-rendering-macro-message</artifactId>
+        <version>${rendering.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.commons</groupId>
+        <artifactId>xwiki-commons-filter-xml</artifactId>
+        <version>${commons.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.rendering</groupId>
+        <artifactId>xwiki-rendering-syntax-wikimodel</artifactId>
+        <version>${rendering.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.rendering</groupId>
+        <artifactId>xwiki-rendering-syntax-plain</artifactId>
+        <version>${rendering.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.rendering</groupId>
+        <artifactId>xwiki-rendering-wikimodel</artifactId>
+        <version>${rendering.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
