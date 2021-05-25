@@ -1,0 +1,113 @@
+<?xml version='1.1' encoding='UTF-8'?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="Confluence.Tools.MigrationProfileSheet" locale="">
+  <web>Confluence.Tools</web>
+  <name>MigrationProfileSheet</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{include reference="Confluence.Tools.Parameters" /}}
+
+{{include reference="Confluence.Tools.Macros" /}}
+
+{{velocity}}
+  ## TO DO : display reports
+  #set ($migrationProfileProperties = $xwiki.getDocument($migratorProfileClassName).getxWikiClass().properties)
+  #if ($xcontext.action == 'edit')
+    {{html clean="false"}}
+      &lt;div class="xform">
+        &lt;dl>
+          &lt;dt>
+            &lt;label for="title">
+              $services.localization.render('confluence.migrator.profile.title')
+            &lt;/label>
+            &lt;span class="xHint">
+              $services.localization.render('confluence.migrator.profile.titlehint')
+            &lt;/span>
+          &lt;/dt>
+          &lt;dd>
+            &lt;input type="text" id="title" name="title" value="$!request.title" size="60" />
+          &lt;/dd>
+          #foreach ($property in $migrationProfileProperties)
+            #if (!$hiddenMigrationProfileProperties.contains($property.name))
+              #set ($fiedID = "${migratorProfileClassName}_0_${property.name}")
+              &lt;dt>
+                &lt;label for="${fiedID}">
+                  $services.localization.render($fiedID)
+                &lt;/label>
+                &lt;span class="xHint">
+                  $services.localization.render("${fiedID}hint")
+                &lt;/span>
+              &lt;/dt>
+              &lt;dd>
+                &lt;input type="#if($property.name == 'token')password#{else}text#end" id="${fiedID}" name="${fiedID}" value="$!fiedValue" size="60" />
+              &lt;/dd>
+            #end
+          #end
+        &lt;/dl>
+      &lt;/div>
+    {{/html}}
+  #else
+    ## Status of the current profile
+    ## Check the active profile. If it's not this one, invite to resume the active profile,
+    ## otherwise, invite to resume the current profile from the active step.
+    #getActiveProfile($activeProfile $activeStep $stepsTaken)
+    #if ("$!activeProfile.trim()" != '')
+      #if ($activeProfile == $doc.fullName)
+        ## The active profile is this one => Resume the current profile.
+        {{info}}$services.localization.render('confluence.migrator.resume.current'){{/info}}
+      #else
+        ## The active profile is NOT this one => Resume the active profile
+        #set ($activeProfileTitle = $xwiki.getDocument($activeProfile).displayTitle)
+        {{warning}}$services.localization.render('confluence.migrator.resume.other', [$activeProfileTitle, $activeProfile]){{/warning}}
+      #end
+    #else
+      ## There is no active profile. Invite the user to start the migration.
+      (% class="pull-right" %)(((
+        (% class="buttonwrapper" %)(((
+          (% class="button" %)(((
+            [[$services.localization.render('confluence.migrator.start')>>$migratorHomePage||queryString="p=${doc.name}"]]
+          )))
+        )))
+      )))
+    #end
+    ## Profile metadata
+    #foreach ($property in $migrationProfileProperties)
+      #if (!$hiddenMigrationProfileProperties.contains($property.name))
+        ; $services.localization.render("${migratorProfileClassName}_0_${property.name}")
+        : $doc.display($property.name)
+      #end
+    #end
+  #end
+{{/velocity}}</content>
+</xwikidoc>

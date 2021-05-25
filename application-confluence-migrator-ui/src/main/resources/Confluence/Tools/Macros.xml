@@ -1,0 +1,104 @@
+<?xml version='1.1' encoding='UTF-8'?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="Confluence.Tools.Macros" locale="">
+  <web>Confluence.Tools</web>
+  <name>Macros</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity output="false"}}
+  ## Display the header of the given step in the wizzard
+  #macro (wizardStepHeader $steps $stepNb)
+    #set ($step = $steps.get($index))
+    &lt;li class="nav-item">
+      &lt;a class="nav-link" href="#step-${stepNb}">
+        &lt;strong>
+          $services.localization.render("confluence.migrator.step.${step.id}.label")
+        &lt;/strong>
+        &lt;br>
+        $services.localization.render("confluence.migrator.step.${step.id}.description")
+      &lt;/a>
+    &lt;/li>
+  #end
+  ## Displat the content of the given step in the wizzard
+  #macro (wizardStepContent $steps $stepNb)
+    #set ($step = $steps.get($index))
+    &lt;div id="step-${stepNb}" class="tab-pane" role="tabpanel" aria-labelledby="step-${stepNb}">
+    {{/html}}
+
+    {{include reference="${step.reference}" /}}
+
+    {{html clean="false"}}
+    &lt;/div>
+  #end
+  #macro (getMigratorProfileList $migratorProfileList $migratorProfilesNb)
+    #set ($migratorProfilesStatement = "select doc.title, doc.fullName, doc.name from Document doc, doc.object($migratorProfileClassName) as obj where doc.fullName &lt;&gt; :profileTemplate")
+    #set ($macro.migratorProfileList = $services.query.xwql($migratorProfilesStatement).bindValue('profileTemplate', $migratorProfileTemplateName).execute())
+    #set ($macro.migratorProfilesNb = $services.query.xwql($migratorProfilesStatement).bindValue('profileTemplate', $migratorProfileTemplateName).addFilter('count').execute())
+    #set ($migratorProfileList = $NULL)
+    #set ($migratorProfilesNb = $NULL)
+    #setVariable("$migratorProfileList" $macro.migratorProfileList)
+    #setVariable("$migratorProfilesNb" $macro.migratorProfilesNb.get(0))
+  #end
+  ## Get the active profile, its status and the number of steps taken in the wizzard
+  #macro (getActiveProfile $activeProfile $activeStep $stepsTaken)
+    #set ($activeProfileObj = $xwiki.getDocument($migratorProfilesHomePage).getObject($activeProfileClassName))
+    #if ($activeProfileObj)
+      #set ($macro.activeProfile = $activeProfileObj.getProperty('profile').value)
+      #set ($$macro.activeStep = $activeProfileObj.getProperty('activeStep').value)
+      #set ($$macro.stepsTaken = $activeProfileObj.getProperty('stepsTaken').value)
+    #end
+    #set ($activeProfile = $NULL)
+    #set ($activeStep = $NULL)
+    #set ($stepsTaken = $NULL)
+    #setVariable("$activeProfile" $macro.activeProfile)
+    #setVariable("$activeStep" $macro.activeStep)
+    #setVariable("$stepsTaken" $macro.stepsTaken)
+  #end
+  ## Generate a new profile ID
+  #macro (generateProfileID $profileID)
+    #set ($macro.profileID = $mathtool.random(1000000, 9999999))
+    #if (!$xwiki.getDocument("Confluence.Migrator.Profiles.${profileID}").isNew())
+      #generateProfileID()
+    #end
+    #set ($profileID = $NULL)
+    #setVariable("$profileID" $macro.profileID)
+  #end
+  ## Display active profile basic parameters : URL and Space name
+  #macro (displayActiveProfileBasicParameters $activeProfileDoc)
+    #foreach ($propertyName in ['url', 'space'])
+      * **$services.localization.render("${migratorProfileClassName}_0_${propertyName}")** : $activeProfileDoc.display($propertyName)
+    #end
+  #end
+{{/velocity}}</content>
+</xwikidoc>

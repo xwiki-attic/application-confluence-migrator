@@ -20,9 +20,9 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="Confluence.Tools.WebHome" locale="">
+<xwikidoc version="1.4" reference="Confluence.Tools.Parameters" locale="">
   <web>Confluence.Tools</web>
-  <name>WebHome</name>
+  <name>Parameters</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
@@ -31,12 +31,21 @@
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>Tools</title>
+  <title/>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>This section contains a set of tools useful for importing content from a Confluence instance
-
-{{children /}}</content>
+  <content>{{velocity output="false"}}
+#set($migratorHomePage = 'Confluence.Migrator.WebHome')
+#set($migratorHomeURL = $xwiki.getURL($migratorHomePage))
+#set($migratorProfilesHomePage = 'Confluence.Migrator.Profiles.WebHome')
+#set($migratorProfileClassName = 'Confluence.Tools.MigrationProfileClass')
+#set($migratorProfileTemplateName = 'Confluence.Tools.MigrationProfileTemplate')
+#set($activeProfileClassName = 'Confluence.Tools.ActiveMigrationProfileClass')
+#set($steps = {
+ 1 : {'id' : 'prerequisites', 'reference' : 'Confluence.Tools.Prerequisites'}
+})
+#set ($hiddenMigrationProfileProperties = ['activeStep', 'stepsTaken'])
+{{/velocity}}</content>
 </xwikidoc>
