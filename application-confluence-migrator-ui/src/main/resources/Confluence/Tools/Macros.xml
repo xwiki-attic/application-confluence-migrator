@@ -1,4 +1,4 @@
-<?xml version='1.1' encoding='UTF-8'?>
+<?xml version="1.1" encoding="UTF-8"?>
 
 <!--
  * See the NOTICE file distributed with this work for additional
@@ -40,26 +40,26 @@
   ## Display the header of the given step in the wizzard
   #macro (wizardStepHeader $steps $stepNb)
     #set ($step = $steps.get($index))
-    &lt;li class="nav-item">
-      &lt;a class="nav-link" href="#step-${stepNb}">
-        &lt;strong>
+    &lt;li class="nav-item"&gt;
+      &lt;a class="nav-link" href="#step-${stepNb}"&gt;
+        &lt;strong&gt;
           $services.localization.render("confluence.migrator.step.${step.id}.label")
-        &lt;/strong>
-        &lt;br>
+        &lt;/strong&gt;
+        &lt;br&gt;
         $services.localization.render("confluence.migrator.step.${step.id}.description")
-      &lt;/a>
-    &lt;/li>
+      &lt;/a&gt;
+    &lt;/li&gt;
   #end
   ## Displat the content of the given step in the wizzard
   #macro (wizardStepContent $steps $stepNb)
     #set ($step = $steps.get($index))
-    &lt;div id="step-${stepNb}" class="tab-pane" role="tabpanel" aria-labelledby="step-${stepNb}">
+    &lt;div id="step-${stepNb}" class="tab-pane" role="tabpanel" aria-labelledby="step-${stepNb}"&gt;
     {{/html}}
 
     {{include reference="${step.reference}" /}}
 
     {{html clean="false"}}
-    &lt;/div>
+    &lt;/div&gt;
   #end
   #macro (getMigratorProfileList $migratorProfileList $migratorProfilesNb)
     #set ($migratorProfilesStatement = "select doc.title, doc.fullName, doc.name from Document doc, doc.object($migratorProfileClassName) as obj where doc.fullName &lt;&gt; :profileTemplate")

@@ -1,0 +1,113 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="Confluence.Migrator.Code.Translations" locale="">
+  <web>Confluence.Migrator.Code</web>
+  <name>Translations</name>
+  <language/>
+  <defaultLanguage>en</defaultLanguage>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>Translations</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>plain/1.0</syntaxId>
+  <hidden>true</hidden>
+  <content>confluence.migrator.application=Confluence Migrator
+### Wizzard steps
+confluence.migrator.step.profiles.label=Step 1
+confluence.migrator.step.profiles.description=Profile
+confluence.migrator.step.prerequisites.label=Step 2
+confluence.migrator.step.prerequisites.description=Prerequisites
+### Profile
+confluence.migrator.profile.title=Migration Profile
+confluence.migrator.profile.titlehint=The title of the new profile
+Confluence.Tools.MigrationProfileClass_0_username=Username
+Confluence.Tools.MigrationProfileClass_0_usernamehint=Your Atlassian account username.
+Confluence.Tools.MigrationProfileClass_0_token=Token
+Confluence.Tools.MigrationProfileClass_0_tokenhint=The &lt;a href="https://id.atlassian.com/manage-profile/security/api-tokens" title="API token"&gt;API token&lt;/a&gt; for your Atlassian account that will be used to enable the analysis of your Confluence data.
+Confluence.Tools.MigrationProfileClass_0_url=URL
+Confluence.Tools.MigrationProfileClass_0_urlhint=The URL of the Confluence instance (ex: https://my.atlassian.net/).
+Confluence.Tools.MigrationProfileClass_0_space=Space
+Confluence.Tools.MigrationProfileClass_0_spacehint=The space that will be imported in XWiki.
+confluence.migrator.start=Start migration
+confluence.migrator.resume.current=The current profile is active. Please [[resume the current migration&gt;&gt;Confluence.Migrator]].
+confluence.migrator.resume.other=The current active profile is has not finished running. Please resume [[{0}&gt;&gt;{1}]] before starting the current profile.
+confluence.migrator.profile.description=A migration profile is defined by the data about authentication, the Confluence instance URL and the space to be migrated. The status of the migration is stored into the profile so that the migration can resumed at any step.
+confluence.migrator.profile.active=The profile [[{0}&gt;&gt;{1}]] has been actived for the current migration with the following parameters :
+confluence.migrator.profile.activenext=To start the migration with the current profile, click on the **Next** button.
+confluence.migrator.profile.create=Click on the following link to [[create a new profile&gt;&gt;path:{0}]].
+confluence.migrator.profile.orcreate=If the existing profiles do not match your needs, you can [[create a new profile&gt;&gt;path:{0}]] to start a new migration.
+confluence.migrator.profile.activecurrent=The current migration runs with the following parameters :
+confluence.migrator.profile.activemissing=There is no active migration profile.
+confluence.migrator.profile.list=You can start the migration from one of the existing profiles :
+confluence.migrator.start.migration=Start this migration
+confluence.migrator.reset.migration=Reset migration
+confluence.migrator.profile.update=Updating migration profile.
+confluence.migrator.profile.updatesuccess=The migration profile has been updated.
+confluence.migrator.profile.reset=Resetting migration profile.
+confluence.migrator.profile.resetsuccess=The migration has been reset successfully.
+### Prerequisites
+confluence.migrator.prerequisites.title=Prerequisites
+confluence.migrator.prerequisites.description=At this step the minimal requirements for the migration are being listed.</content>
+  <object>
+    <name>Confluence.Migrator.Code.Translations</name>
+    <number>0</number>
+    <className>XWiki.TranslationDocumentClass</className>
+    <guid>85cd760d-4d4b-483b-a013-5450a455d980</guid>
+    <class>
+      <name>XWiki.TranslationDocumentClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <scope>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>scope</name>
+        <number>1</number>
+        <prettyName>Scope</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>GLOBAL|WIKI|USER|ON_DEMAND</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </scope>
+    </class>
+    <property>
+      <scope>WIKI</scope>
+    </property>
+  </object>
+</xwikidoc>

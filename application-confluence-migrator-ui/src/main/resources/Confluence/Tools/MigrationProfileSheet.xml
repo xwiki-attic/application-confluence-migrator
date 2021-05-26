@@ -1,4 +1,4 @@
-<?xml version='1.1' encoding='UTF-8'?>
+<?xml version="1.1" encoding="UTF-8"?>
 
 <!--
  * See the NOTICE file distributed with this work for additional
@@ -45,37 +45,37 @@
   #set ($migrationProfileProperties = $xwiki.getDocument($migratorProfileClassName).getxWikiClass().properties)
   #if ($xcontext.action == 'edit')
     {{html clean="false"}}
-      &lt;div class="xform">
-        &lt;dl>
-          &lt;dt>
-            &lt;label for="title">
+      &lt;div class="xform"&gt;
+        &lt;dl&gt;
+          &lt;dt&gt;
+            &lt;label for="title"&gt;
               $services.localization.render('confluence.migrator.profile.title')
-            &lt;/label>
-            &lt;span class="xHint">
+            &lt;/label&gt;
+            &lt;span class="xHint"&gt;
               $services.localization.render('confluence.migrator.profile.titlehint')
-            &lt;/span>
-          &lt;/dt>
-          &lt;dd>
-            &lt;input type="text" id="title" name="title" value="$!request.title" size="60" />
-          &lt;/dd>
+            &lt;/span&gt;
+          &lt;/dt&gt;
+          &lt;dd&gt;
+            &lt;input type="text" id="title" name="title" value="$!request.title" size="60" /&gt;
+          &lt;/dd&gt;
           #foreach ($property in $migrationProfileProperties)
             #if (!$hiddenMigrationProfileProperties.contains($property.name))
               #set ($fiedID = "${migratorProfileClassName}_0_${property.name}")
-              &lt;dt>
-                &lt;label for="${fiedID}">
+              &lt;dt&gt;
+                &lt;label for="${fiedID}"&gt;
                   $services.localization.render($fiedID)
-                &lt;/label>
-                &lt;span class="xHint">
+                &lt;/label&gt;
+                &lt;span class="xHint"&gt;
                   $services.localization.render("${fiedID}hint")
-                &lt;/span>
-              &lt;/dt>
-              &lt;dd>
-                &lt;input type="#if($property.name == 'token')password#{else}text#end" id="${fiedID}" name="${fiedID}" value="$!fiedValue" size="60" />
-              &lt;/dd>
+                &lt;/span&gt;
+              &lt;/dt&gt;
+              &lt;dd&gt;
+                &lt;input type="#if($property.name == 'token')password#{else}text#end" id="${fiedID}" name="${fiedID}" value="$!fiedValue" size="60" /&gt;
+              &lt;/dd&gt;
             #end
           #end
-        &lt;/dl>
-      &lt;/div>
+        &lt;/dl&gt;
+      &lt;/div&gt;
     {{/html}}
   #else
     ## Status of the current profile
@@ -84,10 +84,10 @@
     #getActiveProfile($activeProfile $activeStep $stepsTaken)
     #if ("$!activeProfile.trim()" != '')
       #if ($activeProfile == $doc.fullName)
-        ## The active profile is this one => Resume the current profile.
+        ## The active profile is this one =&gt; Resume the current profile.
         {{info}}$services.localization.render('confluence.migrator.resume.current'){{/info}}
       #else
-        ## The active profile is NOT this one => Resume the active profile
+        ## The active profile is NOT this one =&gt; Resume the active profile
         #set ($activeProfileTitle = $xwiki.getDocument($activeProfile).displayTitle)
         {{warning}}$services.localization.render('confluence.migrator.resume.other', [$activeProfileTitle, $activeProfile]){{/warning}}
       #end
@@ -96,7 +96,7 @@
       (% class="pull-right" %)(((
         (% class="buttonwrapper" %)(((
           (% class="button" %)(((
-            [[$services.localization.render('confluence.migrator.start')>>$migratorHomePage||queryString="p=${doc.name}"]]
+            [[$services.localization.render('confluence.migrator.start')&gt;&gt;$migratorHomePage||queryString="p=${doc.name}"]]
           )))
         )))
       )))

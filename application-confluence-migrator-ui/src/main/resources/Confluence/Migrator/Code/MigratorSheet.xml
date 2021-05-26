@@ -1,0 +1,529 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="Confluence.Migrator.Code.MigratorSheet" locale="">
+  <web>Confluence.Migrator.Code</web>
+  <name>MigratorSheet</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>$services.localization.render('confluence.migrator.application')</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{include reference="Confluence.Tools.Parameters" /}}
+
+{{include reference="Confluence.Tools.Macros" /}}
+
+{{velocity}}
+  #getActiveProfile($activeProfile $activeStep $stepsTaken)
+  #set ($updateActiveProfile = false)
+  #set ($migratorProfilesHomeDoc = $xwiki.getDocument($migratorProfilesHomePage))
+  #set ($migratorProfilesObj = $migratorProfilesHomeDoc.getObject($activeProfileClassName, true))
+  #if ("$!activeProfile.trim()" == '')
+    #if("$!request.p" != '')
+      ## Activate migration profile
+      #set ($updateActiveProfile = true)
+      #set ($activeProfile = "Confluence.Migrator.Profiles.${request.p}")
+      #set ($activeProfileActionKey = 'update')
+    #end
+  #elseif("$!request.r" == '1')
+    ## Reset migration
+    #set ($updateActiveProfile = true)
+    #set ($activeProfile = $NULL)
+    #set ($activeProfileActionKey = 'reset')
+  #end
+  #if ($updateActiveProfile)
+    $migratorProfilesObj.set('profile', $activeProfile)
+    #set ($discard = $xwiki.getXWiki().saveDocument($migratorProfilesHomeDoc.document, $services.localization.render("confluence.migrator.profile.${activeProfileActionKey}"), $xcontext.context))
+
+    {{info}}$services.localization.render("confluence.migrator.profile.${activeProfileActionKey}success"){{/info}}
+
+  #end
+{{/velocity}}
+
+{{velocity}}
+  #set ($discard = $xwiki.linkx.use($services.webjars.url('org.webjars.npm:smartwizard', 'dist/css/smart_wizard_all.min.css'), {'type': 'text/css', 'rel': 'stylesheet'}))
+  #set ($discard = $xwiki.ssx.use('Confluence.Migrator.Code.MigratorSheet'))
+  #set ($discard = $xwiki.jsx.use('Confluence.Migrator.Code.MigratorSheet'))
+  #set ($displayContentMenu = false)
+  #set ($displayCreateMenu = false)
+  #set ($displayEditMenu = false)
+  #set ($displayAdminMenu = false)
+  #set ($displayMoreActionsMenu = false)
+  #set ($displayMainMenu = false)
+  #set ($displayDocExtra = false)
+  #set ($displayContentFooter = false)
+  #set ($displayShortcuts = false)
+  #set ($displayPageHeader = false)
+  #set ($displayLanguageChoice = false)
+  #set ($isActiveMigrationProfile =  $activeProfile &amp;&amp; ("$!activeProfile.trim()" != ''))
+  (% class="confluence-migrator-info" %)(((
+    (% class="hidden" %)(((
+      (% id="active-profile-id" %)(((${escapetool.xml($activeProfile)})))
+    )))
+    (% class="active-profile-description" %)(((
+      #if(!$isActiveMigrationProfile)
+
+        {{warning}}$services.localization.render('confluence.migrator.profile.activemissing'){{/warning}}
+
+      #else
+        (% class="box active-profile-parameters" %)(((
+          (% class="col-md-8" %)(((
+            $services.localization.render('confluence.migrator.profile.activecurrent')
+            #if($activeProfile)
+              #set ($activeProfileDoc = $xwiki.getDocument($activeProfile))
+              #displayActiveProfileBasicParameters($activeProfileDoc)
+            #end
+          )))
+           (% class="col-md-4" %)(((
+             (% class="pull-right" %)(((
+               (% class="buttonwrapper" %)[[$services.localization.render("confluence.migrator.reset.migration")&gt;&gt;$migratorHomePage||queryString="r=1")]](%%)
+             )))
+           )))
+        )))
+      #end
+    )))
+  )))
+  #if($isActiveMigrationProfile)
+    (% id="confluence-migrator" %)(((
+
+      {{html clean="false"}}
+        &lt;ul class="nav"&gt;
+          #foreach($index in [1 .. $steps.keySet().size()])
+            #wizardStepHeader($steps $index)
+          #end
+        &lt;/ul&gt;
+        &lt;div class="tab-content"&gt;
+          #foreach($index in [1 .. $steps.keySet().size()])
+            #wizardStepContent($steps $index)
+          #end
+        &lt;/div&gt;
+      {{/html}}
+    )))
+  #else
+    {{include reference="Confluence.Tools.Profiles" /}}
+  #end
+{{/velocity}}</content>
+  <object>
+    <name>Confluence.Migrator.Code.MigratorSheet</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>c82369ef-2605-4789-8d96-9e0d28145416</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require.config({
+  paths: {
+    SmartWizard: "$!services.webjars.url('org.webjars.npm:smartwizard', 'dist/js/jquery.smartWizard.min.js')"
+  }
+});
+
+require(['jquery', 'xwiki-events-bridge', 'SmartWizard'], function($, xev, SmartWizard) {
+  'use strict';
+
+  var confluenceMigrator = $('#confluence-migrator');
+
+  var initWizard = function() {
+
+    // Toolbar extra buttons
+    var btnFinish = $('&lt;button&gt;&lt;/button&gt;').text('Finish')
+                                          .attr('id', 'btn-finish')
+                                          .addClass('btn btn-info hidden')
+                                          .on('click', function(){ alert('Finish Clicked'); });
+    var btnCancel = $('&lt;button&gt;&lt;/button&gt;').text('Cancel')
+                                          .attr('id', 'btn-cancel')
+                                          .addClass('btn btn-danger')
+                                          .on('click', function(){ confluenceMigrator.smartWizard("reset"); });
+
+    // Smart Wizard
+    confluenceMigrator.smartWizard({
+      selected: 0,
+      theme: 'arrows',
+      transition: {
+        animation: 'none',
+      },
+      toolbarSettings: {
+        toolbarPosition: 'bottom',
+        toolbarExtraButtons: [btnFinish, btnCancel]
+      },
+      autoAdjustHeight: false
+    });
+
+    // Leave step event
+    confluenceMigrator.on("leaveStep", function(e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
+      if(stepDirection == 'forward') {
+        var data = {
+          'step'   : currentStepIndex++
+        }
+        var confluenceStep = $('#confluence-space');
+        if(confluenceStep &amp;&amp; confluenceStep.val()){
+          data['space'] = encodeURIComponent(confluenceStep.val());
+        }
+        $.ajax(new XWiki.Document('MigrationService', 'Confluence.Tools').getURL('get', 'outputSyntax=plain'), {
+          'data': data,
+          'method': 'POST',
+          'data-type': 'json'
+        }).done(function (data) {
+          //console.log('SUCCESS: Registered the state of the wizard.');
+        }).fail(function () {
+          //console.log('ERROR: Failed to register the state of the wizard.');
+        });
+      }
+    });
+
+    // Hide the previous button on the first step, even if it is disabled
+    if(confluenceMigrator.smartWizard("getStepIndex") === 0) {
+      $(".sw-btn-prev").addClass('hidden');
+    }
+
+    // Hide the next button on the last step, even if it is disabled
+    if(confluenceMigrator.smartWizard("getStepIndex") === 0) {
+      $(".sw-btn-prev").addClass('hidden');
+    }
+
+    // Step show event
+    confluenceMigrator.on("showStep", function(e, anchorObject, stepNumber, stepDirection, stepPosition) {
+      console.debug(stepPosition);
+      // For other steps than the first one, show back the previous button
+      if(stepPosition === 'first') {
+        $(".sw-btn-prev").addClass('hidden');
+      } else {
+        $(".sw-btn-prev").removeClass('hidden');
+      }
+
+      // Hide the next button on the last step, even if it is disabled
+      if(stepPosition === 'last') {
+        $("#btn-finish").removeClass('hidden');
+        $(".sw-btn-next").addClass('hidden');
+      } else {
+        $("#btn-finish").addClass('hidden');
+        $(".sw-btn-next").removeClass('hidden');
+      }
+    });
+  }
+  XWiki.domIsLoaded &amp;&amp; initWizard();
+});</code>
+    </property>
+    <property>
+      <name>Migrator JS</name>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>Confluence.Migrator.Code.MigratorSheet</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>3fd0a438-e292-466f-9535-214f80288a4c</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>.field-invalid {
+  color: red;
+  font-style: italic;
+  font-size: 0.9em;
+}
+
+a.advanced-fields,
+a.advanced-fields:active,
+a.advanced-fields:hover {
+  display: block;
+  text-decoration: none;
+  margin: -15px 0 20px 0;
+}
+.advanced-fields:after {
+  content: "\f0d8";
+  font: normal normal normal 12px/1 FontAwesome;
+}
+.advanced-fields.collapsed:after {
+  content: "\f0d7";
+  font: normal normal normal 12px/1 FontAwesome;
+}
+
+/* XWiki styles */
+.sw-theme-arrows {
+    .nav {
+      .nav-link.active {
+        background-color : @btn-primary-bg;
+        &amp;::after {
+          border-left-color : @btn-primary-bg;
+        }
+      }
+    }
+  .toolbar {
+    .btn {
+      background-color : @btn-primary-bg;
+      border-color: @btn-primary-bg;
+
+      &amp;:hover {
+        .btn-gradient(darken(@btn-primary-bg, 5%));
+        .btn-border(@btn-primary-bg);
+      }
+
+      &amp;.btn-danger {
+        background-color: @btn-default-bg;
+        .btn-gradient(@btn-default-bg);
+        .btn-border(@btn-default-bg);
+
+        &amp;:hover {
+          .btn-gradient(darken(@btn-default-bg, 5%));
+          .btn-border(@btn-default-bg);
+        }
+
+        background-image: none;
+        color: @text-color;
+      }
+    }
+  }
+}
+#btn-finish {
+  .btn-gradient(@btn-success-bg);
+  .btn-border(@btn-success-bg);
+
+  &amp;:hover {
+    .btn-gradient(darken(@btn-success-bg, 5%));
+    .btn-border(@btn-success-bg);
+  }
+}
+
+input {
+  &amp;.float-left {
+    float: left;
+    margin-right: 0.4rem;
+  }
+}
+
+.table-hover tbody tr {
+  td {
+    border: none;
+    .buttonwrapper {
+      float: right;
+    }
+  }
+  &amp;:hover {
+    td  {
+      background-color: @xwiki-background-secondary-color;
+    }
+  }
+}</code>
+    </property>
+    <property>
+      <contentType>LESS</contentType>
+    </property>
+    <property>
+      <name>Migrator CSS</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+</xwikidoc>

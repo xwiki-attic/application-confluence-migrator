@@ -1,4 +1,4 @@
-<?xml version='1.1' encoding='UTF-8'?>
+<?xml version="1.1" encoding="UTF-8"?>
 
 <!--
  * See the NOTICE file distributed with this work for additional
@@ -53,24 +53,24 @@ Heavy processes should be disabled:
 
 * Deactivate notifications in xwiki.properties (optional)
 * Deactivate notifications on your own profile ("never" for automatic page watching, disable page notifications)
-* Clean Notifications: run [[CleanNotificationsPrefs>>Confluence.Tools.CleanNotificationsPrefs]] (optional)
+* Clean Notifications: run [[CleanNotificationsPrefs&gt;&gt;Confluence.Tools.CleanNotificationsPrefs]] (optional)
 * Deactivate SOLR and Notifications listeners
 ** Deactivate SOLR and Notification listeners from XWiki.ListenerAdmin page on main wiki :
-*** [[SolrIndexEventListener>>XWiki.ListenerAdmin||queryString="language=#%7Ct=listeners&amp;p=1&amp;l=8&amp;s=listenerName&amp;d=asc&amp;listenerClass=solr"]] (optional, as this would disable SOLR indexing for the whole farm)
-*** [[DocumentMovedListener, AutomaticWatchModeListener, LiveNotificationEmailListener>>XWiki.ListenerAdmin||queryString="language=#%7Ct=listeners&amp;p=1&amp;l=8&amp;s=listenerName&amp;d=asc&amp;listenerClass=notifications"]] (important for large spaces)
+*** [[SolrIndexEventListener&gt;&gt;XWiki.ListenerAdmin||queryString="language=#%7Ct=listeners&amp;p=1&amp;l=8&amp;s=listenerName&amp;d=asc&amp;listenerClass=solr"]] (optional, as this would disable SOLR indexing for the whole farm)
+*** [[DocumentMovedListener, AutomaticWatchModeListener, LiveNotificationEmailListener&gt;&gt;XWiki.ListenerAdmin||queryString="language=#%7Ct=listeners&amp;p=1&amp;l=8&amp;s=listenerName&amp;d=asc&amp;listenerClass=notifications"]] (important for large spaces)
 
 Modify Nested Spaces Migrator:
 
 This change is important to avoid failure of the Nested Page Migrator on the DocumentMovedListener.
 
-* Edit in object mode [[NestedPagesMigration>>NestedPagesMigration.WebHome]]
+* Edit in object mode [[NestedPagesMigration&gt;&gt;NestedPagesMigration.WebHome]]
 * Open 2nd Javascript Object, line 49:
 
 Change {{code}}255{{/code}} to {{code}}(254 - XWiki.currentWiki.length){{/code}}:
 
 {{code}}
 self.isTooLong = function () {
-  return self.serializedTargetDocument().length > (254 - XWiki.currentWiki.length);
+  return self.serializedTargetDocument().length &gt; (254 - XWiki.currentWiki.length);
 }
 {{/code}}</content>
 </xwikidoc>

@@ -1,4 +1,4 @@
-<?xml version='1.1' encoding='UTF-8'?>
+<?xml version="1.1" encoding="UTF-8"?>
 
 <!--
  * See the NOTICE file distributed with this work for additional
@@ -117,7 +117,7 @@
       <levels>view,comment,edit,script</levels>
     </property>
     <property>
-      <users></users>
+      <users/>
     </property>
   </object>
   <object>
@@ -302,12 +302,12 @@
 #if ("$!value" == '')
   #set ($value = $xwiki.getDefaultDocumentSyntax())
 #end
-&lt;select name="${object.getxWikiClass().name}_${object.number}_${name}" id="${object.getxWikiClass().name}_${object.number}_${name}">
+&lt;select name="${object.getxWikiClass().name}_${object.number}_${name}" id="${object.getxWikiClass().name}_${object.number}_${name}"&gt;
 #set ($configuredSyntaxes = $services.rendering.getConfiguredSyntaxes())
 #foreach($syntax in $configuredSyntaxes)
-  &lt;option value="$syntax.toIdString()"#if($syntax.toIdString().equalsIgnoreCase($value)) selected="selected"#end>$syntax.toString()&lt;/option>
+  &lt;option value="$syntax.toIdString()"#if($syntax.toIdString().equalsIgnoreCase($value)) selected="selected"#end&gt;$syntax.toString()&lt;/option&gt;
 #end
-&lt;/select>
+&lt;/select&gt;
 {{/html}}
 {{/velocity}}</customDisplay>
         <disabled>0</disabled>
@@ -1351,13 +1351,13 @@
       <accessibility/>
     </property>
     <property>
-      <colorTheme></colorTheme>
+      <colorTheme/>
     </property>
     <property>
-      <core.defaultDocumentSyntax></core.defaultDocumentSyntax>
+      <core.defaultDocumentSyntax/>
     </property>
     <property>
-      <dateformat></dateformat>
+      <dateformat/>
     </property>
     <property>
       <editcomment/>
@@ -1369,52 +1369,52 @@
       <guest_comment_requires_captcha/>
     </property>
     <property>
-      <iconTheme></iconTheme>
+      <iconTheme/>
     </property>
     <property>
-      <javamail_extra_props></javamail_extra_props>
+      <javamail_extra_props/>
     </property>
     <property>
       <ldap/>
     </property>
     <property>
-      <ldap_UID_attr></ldap_UID_attr>
+      <ldap_UID_attr/>
     </property>
     <property>
-      <ldap_base_DN></ldap_base_DN>
+      <ldap_base_DN/>
     </property>
     <property>
-      <ldap_bind_DN></ldap_bind_DN>
+      <ldap_bind_DN/>
     </property>
     <property>
-      <ldap_bind_pass></ldap_bind_pass>
+      <ldap_bind_pass/>
     </property>
     <property>
-      <ldap_exclude_group></ldap_exclude_group>
+      <ldap_exclude_group/>
     </property>
     <property>
-      <ldap_fields_mapping></ldap_fields_mapping>
+      <ldap_fields_mapping/>
     </property>
     <property>
-      <ldap_group_mapping></ldap_group_mapping>
+      <ldap_group_mapping/>
     </property>
     <property>
-      <ldap_groupcache_expiration></ldap_groupcache_expiration>
+      <ldap_groupcache_expiration/>
     </property>
     <property>
-      <ldap_mode_group_sync></ldap_mode_group_sync>
+      <ldap_mode_group_sync/>
     </property>
     <property>
-      <ldap_photo_attachment_name></ldap_photo_attachment_name>
+      <ldap_photo_attachment_name/>
     </property>
     <property>
-      <ldap_photo_attribute></ldap_photo_attribute>
+      <ldap_photo_attribute/>
     </property>
     <property>
-      <ldap_port></ldap_port>
+      <ldap_port/>
     </property>
     <property>
-      <ldap_server></ldap_server>
+      <ldap_server/>
     </property>
     <property>
       <ldap_trylocal/>
@@ -1426,13 +1426,13 @@
       <ldap_update_user/>
     </property>
     <property>
-      <ldap_user_group></ldap_user_group>
+      <ldap_user_group/>
     </property>
     <property>
       <ldap_validate_password/>
     </property>
     <property>
-      <leftPanelsWidth></leftPanelsWidth>
+      <leftPanelsWidth/>
     </property>
     <property>
       <minoredit/>
@@ -1441,13 +1441,13 @@
       <obfuscateEmailAddresses/>
     </property>
     <property>
-      <parent></parent>
+      <parent/>
     </property>
     <property>
-      <plugins></plugins>
+      <plugins/>
     </property>
     <property>
-      <rightPanelsWidth></rightPanelsWidth>
+      <rightPanelsWidth/>
     </property>
     <property>
       <showannotations/>
@@ -1465,19 +1465,19 @@
       <showinformation/>
     </property>
     <property>
-      <smtp_port></smtp_port>
+      <smtp_port/>
     </property>
     <property>
-      <smtp_server_password></smtp_server_password>
+      <smtp_server_password/>
     </property>
     <property>
-      <smtp_server_username></smtp_server_username>
+      <smtp_server_username/>
     </property>
     <property>
       <tags/>
     </property>
     <property>
-      <timezone></timezone>
+      <timezone/>
     </property>
     <property>
       <upload_maxsize/>
