@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="Confluence.Migrator.WebPreferences" locale="">
-  <web>Confluence.Migrator</web>
+<xwikidoc version="1.4" reference="Confluence.Tools.WebPreferences" locale="">
+  <web>Confluence.Tools</web>
   <name>WebPreferences</name>
   <language/>
   <defaultLanguage/>
@@ -38,10 +38,10 @@
   <hidden>true</hidden>
   <content/>
   <object>
-    <name>Confluence.Migrator.WebPreferences</name>
+    <name>Confluence.Tools.WebPreferences</name>
     <number>0</number>
     <className>XWiki.XWikiGlobalRights</className>
-    <guid>5b2c85e5-3212-49db-81eb-9694dd18eb92</guid>
+    <guid>1bd293ce-0d5c-4c49-9f14-d46cd87e89b5</guid>
     <class>
       <name>XWiki.XWikiGlobalRights</name>
       <customClass/>
@@ -121,10 +121,10 @@
     </property>
   </object>
   <object>
-    <name>Confluence.Migrator.WebPreferences</name>
+    <name>Confluence.Tools.WebPreferences</name>
     <number>0</number>
     <className>XWiki.XWikiPreferences</className>
-    <guid>29f4e7b1-80a9-411e-8917-fda131261f54</guid>
+    <guid>2c05248d-391a-4c16-8458-1d83339908b7</guid>
     <class>
       <name>XWiki.XWikiPreferences</name>
       <customClass/>
@@ -1351,19 +1351,7 @@
       <accessibility/>
     </property>
     <property>
-      <admin_email></admin_email>
-    </property>
-    <property>
       <colorTheme></colorTheme>
-    </property>
-    <property>
-      <comment_anonymous></comment_anonymous>
-    </property>
-    <property>
-      <comment_registered></comment_registered>
-    </property>
-    <property>
-      <confirmation_email_content></confirmation_email_content>
     </property>
     <property>
       <core.defaultDocumentSyntax></core.defaultDocumentSyntax>
@@ -1372,25 +1360,10 @@
       <dateformat></dateformat>
     </property>
     <property>
-      <default_language></default_language>
-    </property>
-    <property>
-      <documentBundles></documentBundles>
-    </property>
-    <property>
-      <edit_anonymous></edit_anonymous>
-    </property>
-    <property>
-      <edit_registered></edit_registered>
-    </property>
-    <property>
       <editcomment/>
     </property>
     <property>
       <editcomment_mandatory/>
-    </property>
-    <property>
-      <editor></editor>
     </property>
     <property>
       <guest_comment_requires_captcha/>
@@ -1399,13 +1372,7 @@
       <iconTheme></iconTheme>
     </property>
     <property>
-      <invitation_email_content></invitation_email_content>
-    </property>
-    <property>
       <javamail_extra_props></javamail_extra_props>
-    </property>
-    <property>
-      <languages></languages>
     </property>
     <property>
       <ldap/>
@@ -1465,13 +1432,7 @@
       <ldap_validate_password/>
     </property>
     <property>
-      <leftPanels></leftPanels>
-    </property>
-    <property>
       <leftPanelsWidth></leftPanelsWidth>
-    </property>
-    <property>
-      <meta></meta>
     </property>
     <property>
       <minoredit/>
@@ -1486,22 +1447,7 @@
       <plugins></plugins>
     </property>
     <property>
-      <registration_anonymous></registration_anonymous>
-    </property>
-    <property>
-      <registration_registered></registration_registered>
-    </property>
-    <property>
-      <rightPanels></rightPanels>
-    </property>
-    <property>
       <rightPanelsWidth></rightPanelsWidth>
-    </property>
-    <property>
-      <showLeftPanels>1</showLeftPanels>
-    </property>
-    <property>
-      <showRightPanels>0</showRightPanels>
     </property>
     <property>
       <showannotations/>
@@ -1519,13 +1465,7 @@
       <showinformation/>
     </property>
     <property>
-      <skin></skin>
-    </property>
-    <property>
       <smtp_port></smtp_port>
-    </property>
-    <property>
-      <smtp_server></smtp_server>
     </property>
     <property>
       <smtp_server_password></smtp_server_password>
@@ -1534,31 +1474,13 @@
       <smtp_server_username></smtp_server_username>
     </property>
     <property>
-      <stylesheet></stylesheet>
-    </property>
-    <property>
-      <stylesheets></stylesheets>
-    </property>
-    <property>
       <tags/>
     </property>
     <property>
       <timezone></timezone>
     </property>
     <property>
-      <title></title>
-    </property>
-    <property>
       <upload_maxsize/>
-    </property>
-    <property>
-      <validation_email_content></validation_email_content>
-    </property>
-    <property>
-      <version></version>
-    </property>
-    <property>
-      <webcopyright></webcopyright>
     </property>
     <property>
       <xwiki.title.mandatory/>
