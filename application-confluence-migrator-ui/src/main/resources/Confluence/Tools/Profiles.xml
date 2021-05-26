@@ -59,7 +59,7 @@
   $services.localization.render('confluence.migrator.profile.activenext', [$activeProfileDoc.displayTitle, $activeProfile])
 #else
   ## If there are profile already created, list them
-  #if ($migratorProfilesNb)
+  #if ($migratorProfilesNb > 0)
     $services.localization.render('confluence.migrator.profile.list')
     (% class="table-striped table-hover" %)(((
       #foreach ($profile in $migratorProfileList)
@@ -73,7 +73,7 @@
 #generateProfileID($profileID)
 ## The type of message to display, depening on wether there are already existing profiles or not
 #set ($createMessageKey = 'create')
-#if ($migratorProfilesNb)
+#if ($migratorProfilesNb > 0)
   ## Add an "OR" to underline the optional choice (select existing profile, OR create a new one)
   #set ($createMessageKey = 'orcreate')
 #end
