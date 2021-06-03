@@ -45,7 +45,7 @@
   </scm>
   <properties>
     <licensing.version>1.18</licensing.version>
-    <confluence.xml.version>9.12</confluence.xml.version>
+    <confluence.xml.version>9.13</confluence.xml.version>
     <nestedpages.migrator.version>0.7</nestedpages.migrator.version>
     <pro.macros.version>1.0</pro.macros.version>
     <smart.wizard.version>5.1.1</smart.wizard.version>
