@@ -43,6 +43,11 @@
 {{velocity}}
   ## TO DO : display reports
   #set ($migrationProfileProperties = $xwiki.getDocument($migratorProfileClassName).getxWikiClass().properties)
+  #set ($migrationProfileObj = $doc.getObject($migratorProfileClassName))
+  #set ($profileTitle = "$!request.title")
+  #if ($profileTitle.trim() == '')
+    #set($profileTitle = $tdoc.title)
+  #end
   #if ($xcontext.action == 'edit')
     {{html clean="false"}}
       &lt;div class="xform"&gt;
@@ -56,11 +61,12 @@
             &lt;/span&gt;
           &lt;/dt&gt;
           &lt;dd&gt;
-            &lt;input type="text" id="title" name="title" value="$!request.title" size="60" /&gt;
+            &lt;input type="text" id="title" name="title" value="$!profileTitle" size="60" /&gt;
           &lt;/dd&gt;
           #foreach ($property in $migrationProfileProperties)
             #if (!$hiddenMigrationProfileProperties.contains($property.name))
               #set ($fiedID = "${migratorProfileClassName}_0_${property.name}")
+              #set ($fieldValue = $migrationProfileObj.getProperty($property.name).value)
               &lt;dt&gt;
                 &lt;label for="${fiedID}"&gt;
                   $services.localization.render($fiedID)
@@ -70,7 +76,7 @@
                 &lt;/span&gt;
               &lt;/dt&gt;
               &lt;dd&gt;
-                &lt;input type="#if($property.name == 'token')password#{else}text#end" id="${fiedID}" name="${fiedID}" value="$!fiedValue" size="60" /&gt;
+                &lt;input type="#if($property.name == 'token')password#{else}text#end" id="${fiedID}" name="${fiedID}" value="$!fieldValue" size="60" /&gt;
               &lt;/dd&gt;
             #end
           #end
@@ -101,12 +107,15 @@
         )))
       )))
     #end
-    ## Profile metadata
-    #foreach ($property in $migrationProfileProperties)
-      #if (!$hiddenMigrationProfileProperties.contains($property.name))
-        ; $services.localization.render("${migratorProfileClassName}_0_${property.name}")
-        : $doc.display($property.name)
+    #if($xcontext.action == 'view')
+      ## Profile metadata
+      #foreach ($property in $migrationProfileProperties)
+        #if (!$hiddenMigrationProfileProperties.contains($property.name) &amp;&amp; $property.name != 'username' &amp;&amp; $property.name != 'token')
+          ; $services.localization.render("${migratorProfileClassName}_0_${property.name}")
+          : $doc.display($property.name)
+        #end
       #end
+      $doc.content
     #end
   #end
 {{/velocity}}</content>

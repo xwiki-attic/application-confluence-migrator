@@ -36,312 +36,84 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>
-This script has the objective of analysis a remote Confluence space and detect pages that would cause importing problems because of the page length.
-
-{{info}}
-To use this script a username and [[token&gt;&gt;url:https://id.atlassian.com/manage-profile/security/api-tokens]] needs to be provided by using "edit object" on this page.
-{{/info}}
-
-{{job id="confluence/spaceanalysis2" start="{{velocity~}~}$!{request.confirm}{{/velocity~}~}"}}
-{{groovy}}
-  import groovy.json.*;
-  import java.util.*;
-  import org.xwiki.logging.LogLevel;
-
-  def log = services.logging.getLogger(doc.fullName)
-  services.logging.setLevel(doc.fullName, LogLevel.INFO);
-
-  def baseUrl = request.url
-  def space = request.space
-  def max = 240;
-  def limit = 100;
-  def maxNewNameLength = 40
-  def start = 0
-  def nb = 1;
-  def docsTooLong = ""
-  def docsHierarchyTooLong = ""
-  def importCheck = false;
-
-  def resultDocName = "Confluence.Tools.ConfluenceSpaceAnalysis.${space}"
-  def resultDoc = xwiki.getDocument(resultDocName)
-
-  if (request.start) {
-     start = Integer.parseInt(request.start)
-  }
-  if (request.nb) {
-     nb = Integer.parseInt(request.nb)
-  }
-  if (request.nbdocs) {
-     limit = Integer.parseInt(request.nbdocs)
-  }
-  if (request.importcheck=="1") {
-     importCheck = true;
-  }
-
-  def searchUrl = "${baseUrl}/rest/api/content?type=page&amp;spaceKey=${space}&amp;limit=${limit}"
-  if (request.ancestor)
-   searchUrl += "&amp;expand=ancestors&amp;start="
-  else 
-   searchUrl += "&amp;start="
-
-  def jsonSlurper = new JsonSlurper()
-  def key = "";
-  try {
-    key = doc.getObject(doc.fullName).getProperty("key").getBaseProperty().getValue()
-  } catch (e) {}
-  def username = doc.getValue("username")
-
-  def getContent(url, username, password) {
-    def authString = "${username}:${password}".getBytes().encodeBase64().toString()
-    def conn = url.toURL().openConnection()
-    conn.setRequestProperty( "Authorization", "Basic ${authString}" )
-    if( conn.responseCode == 200 ) {
-      return conn.content.text
-    } else {
-      return "${conn.responseCode}: ${conn.responseMessage}"
-    }
-  }
-
-  def getNameProposalSize(name, log, newNameList, maxLength) {
-    def splitname = name.replaceAll("/","_").replaceAll("[.]","_").replaceAll(" _ ", "_").replaceAll("[^\\dA-Za-z_ ]"," ").replaceAll('_', " ")replaceAll("\\s+"," ").split(' ')
-    def newname = splitname[0]
-    def scounter = 1
-    while (newname.replaceAll("[0-9_]","")=="" || newname.size()&lt;20) {
-      if (scounter&gt;5)
-        break;
-      if (scounter&gt;=splitname.size())
-        break;
-      if ((newname.size() + splitname[scounter].size()) &gt; maxLength)
-        break;
-      newname += " " + splitname[scounter]
-      scounter++;
-    }
-
-    if (newname.endsWith("_")||newname.endsWith("_"))
-     newname = newname.substring(0, newname.length()-1)
-
-    def count = 1
-    def newname2 = newname;
-    if (newNameList.contains(newname2)) {
-      newname2 = newname + "_1";
-    }
-    newNameList.add(newname2)
-    if (newname2.size() &gt; name.size())
-     return name.size();
-    else
-     return newname2.size();
-  }
-
-  def getImportedPageList(space, log, xwiki) {
-    log.info("Get imported page list start")
-    def map = [:]
-    def list = xwiki.search("select doc.title, doc.fullName from XWikiDocument as doc where (doc.space like '${space}%' or doc.space = '${space}') and doc.fullName&lt;&gt;'${space}.WebHome'")
-    for (item in list) {
-      map.put(item[0], item[1])
-    }
-    log.info("Get imported page list end")
-    return map;
-  }
-
-  def saveStatus(space, resultDoc, docsTooLong, docsHierarchyTooLong, countAll, countLong, countLongHierarchy, maxDeepLevel, pagesImported, pagesNotImported, importedPageList, partial) {
-    def spartial = (partial) ? "(partial report)" : "";
-    def content = """= Confluence space analysis report for space ${space} ${spartial} =
-
-* documents analyzed: ${countAll}
-* long docs found: ${countLong}
-* long hierarchy found: ${countLongHierarchy}
-* max level found: ${maxDeepLevel}
-* Nb imported pages: ${pagesImported.size()}
-* Nb not imported pages: ${pagesNotImported.size()}
-* No remaining pages: ${importedPageList.size()}
-
-== Long documents found ==
-
-${docsTooLong}
-
-== Long hierarchies found ==
-
-${docsHierarchyTooLong}
-
-"""
-
-   if (partial==false) {
-     content += "\n\n== Not imported pages ==\n\n"
-     for (item in pagesNotImported) {
-       content += "* {{{ ${item}}}}\n"
-     }
-     content += "\n\n== Pages not found in Confluence ==\n\n"
-     for (item in importedPageList.keySet()) {
-       def fullName = importedPageList.get(item)
-       content += "* {{{ ${item} }}} [[${fullName}]]\n"
-     }
-   }
-
-   resultDoc.setContent(content)
-   resultDoc.save("Saving confluence space report ${spartial}")
-  }
-
-def countAll = 0
-def countLong = 0
-def countLongHierarchy = 0
-def maxDeepLevel = 0;
-def loop = 0
-def newNameList = [];
-def importedPageList = [:];
-def pagesImported = []
-def pagesNotImported = []
-def pagesNotImportedOutput = ""
-
-if ((username=="" || username==null || key=="" || key==null)) {
-  log.error("The username and confluence token are not available. Add them using 'edit object'")
-} else if (space==null || space=="") {
-  log.error("The space to check has not been provided")
-} else {
-log.info("Starting")
-log.info("""Reports are saved as ${resultDoc.getExternalURL()}""")
-if (importCheck) {
-  importedPageList = getImportedPageList(space, log, xwiki);
-}
-services.progress.startStep();
-services.progress.pushLevel(nb);
-log.info("Launching ${nb} loops")
-for (i in 1..nb) {
- log.info("Loop ${i}")
- services.progress.startStep();
- def result = ""
- try {
-  def url = searchUrl + start
-  log.info("Getting page info from ${url}")
-  result = getContent(url, username, key)
-  def pages = jsonSlurper.parseText(result)
-
- log.info("Analyzing ${pages.results.size()} pages")
- for (page in pages.results) {
-  def ptitle = page.title
-  countAll++;
-  if (importCheck) {
-   try {
-    if (importedPageList.get(ptitle)) {
-      log.info("Found page ${ptitle} in imported page")
-      pagesImported.add(ptitle)
-      importedPageList.remove(ptitle)
-    } else {
-      if (page.status=="archived") {
-       log.warn("Archived page '${ptitle}' not found in imported pages")
-      } else {
-       log.warn("${ptitle} not found in imported pages")
-       pagesNotImported.add(ptitle)
-       def docUrl = baseUrl + page._links.webui
-       pagesNotImportedOutput += "* ${ptitle} ${docUrl}\n"
-      }
-    }
-   } catch (e) {
-   log.error("Error checking imported page " + ptitle + ": " + e.getMessage());
-   }
-  }
-  try {
-   if (ptitle.size()&gt;max) {
-    countLong++;
-    def docUrl = baseUrl + page._links.webui
-    docsTooLong += "* ${ptitle} (${ptitle.size()}) ${docUrl}\n"
-    log.warn("Found long page (${ptitle.size()}): ${ptitle} ${docUrl}")
-   }
-
-   if (request.ancestor) {
-    def fullSize = space.size() + 8 + getNameProposalSize(ptitle, log, newNameList, maxNewNameLength)
-    def deepLevel = 1;
-    for (parent in page.ancestors) {
-      deepLevel++;
-      fullSize += 1 + getNameProposalSize(parent.title, log, newNameList, maxNewNameLength)
-    }
-    if (fullSize &gt; max) {
-      countLongHierarchy++;
-      def docUrl = baseUrl + page._links.webui
-      docsHierarchyTooLong += "* ${ptitle} (${fullSize}) ${docUrl}\n"
-      log.warn("Found long full hierarchy (${fullSize}): " + ptitle + "  ${docUrl}");
-    }
-    if (deepLevel &gt; maxDeepLevel)
-     maxDeepLevel = deepLevel;
-    log.debug("Full name size for page ${ptitle}: " + fullSize + " deeplevel: " + deepLevel);
-   }
-   } catch (e) {
-    log.error("Error processing page " + ptitle + ": " + e.getMessage());
-  }
- }
- start += limit;
- try {
-  log.info("Nb pages: ${countAll}")
-  log.info("Nb long pages: ${countLong}")
-  log.info("Nb long hierarchy: ${countLongHierarchy}")
-  log.info("Max deep level: ${maxDeepLevel}")
-  saveStatus(space, resultDoc, docsTooLong, docsHierarchyTooLong, countAll, countLong, countLongHierarchy, maxDeepLevel, pagesImported, pagesNotImported, importedPageList, true)
- } catch (e) {
-    log.error("Error saving status " + e.getMessage());
- }
- } catch (e2) {
-    log.error("Error retrieving data " + e2.getMessage());
-    log.error(result);
- }
- services.progress.endStep();
-}
-try {
-    log.info("Final Nb pages: ${countAll}")
-    log.info("Final Nb long pages: ${countLong}")
-    log.info("Nb long hierarchy: ${countLongHierarchy}")
-    log.info("Max deep level: ${maxDeepLevel}")
-    if (importCheck) {
-      log.info("Nb imported pages: ${pagesImported.size()}")
-      log.info("Nb not imported pages: ${pagesNotImported.size()}")
-      log.info("No remaining pages: ${importedPageList.size()}")
-    }
-    saveStatus(space, resultDoc, docsTooLong, docsHierarchyTooLong, countAll, countLong, countLongHierarchy, maxDeepLevel, pagesImported, pagesNotImported, importedPageList, false)
-} catch (e) {
-    log.error("Error saving status " + e.getMessage());
-}
-log.info("""Report is available ${resultDoc.getExternalURL()}""")
-services.progress.popLevel();
-services.progress.endStep();
-}
-{{/groovy}}
-{{/job}}
+  <content>{{include reference="Confluence.Tools.Parameters" /}}
 
 {{velocity}}
- #set($space = "")
- #if($request.space)
-  #set($space = $request.space)
- #end
- #set($url = "")
- #if($request.url)
-  #set($url = $request.url)
- #end
- #set($nbdocs = "100")
- #if($request.nbdocs)
-  #set($nbdocs = $request.nbdocs)
- #end
- #set($nb = "1")
- #if($request.nb)
-  #set($nb = $request.nb)
- #end
- #if ("$request.confirm" != 'true')
-{{html clean=false}}
-&lt;form action=""&gt;
-Confluence URL: &lt;input type="text" name="url" value="${escapetool.xml($url)}" size="60" /&gt;&lt;br /&gt;
-Space name: &lt;input type="text" name="space" value="${escapetool.xml($space)}" size="60" /&gt;&lt;br /&gt;
-Docs per runs: &lt;input type="text" name="nbdocs" value="${escapetool.xml($nbdocs)}" size="5" /&gt;&lt;br /&gt;
-Number of runs: &lt;input type="text" name="nb" value="${escapetool.xml($nb)}" size="5" /&gt;&lt;br /&gt;
-Start: &lt;input type="text" name="start" value="0" size="5"  /&gt;&lt;br /&gt;
-&lt;input name="ancestor" type="checkbox" value="1"  /&gt; with hierarchy analysis
-&lt;input name="importcheck" type="checkbox" value="1"  /&gt; with page imported check
-&lt;input name="confirm" type="hidden" value="true" /&gt;
-&lt;br /&gt;
-&lt;input name="submit" type="submit" value="Go" class="button" /&gt;
-&lt;/form&gt;
-{{/html}}
-#else
-#set($qs = "url=$!{escapetool.url($!url)}&amp;space=$!{escapetool.url($!space)}&amp;nb=$!{nb}&amp;nbdocs=$!{nbdocs}")
- $response.sendRedirect($doc.getURL("view", $qs))
-#end
+  == $services.localization.render('confluence.migrator.spaceanalysis.title') ==
+
+  {{info}}$services.localization.render('confluence.migrator.spaceanalysis.description'){{/info}}
+
+  #set ($spaceAnalysisHomeDoc = $xwiki.getDocument($spaceAnalysisHomePage))
+  #set ($configObj = $spaceAnalysisHomeDoc.getObject($configClass))
+  #set ($displayAuthenticationForm = "$!request.config" == '1')
+  #set ($spaceAnalysisURL = $xwiki.getURL($migratorHomePage, 'view', '#step-2'))
+
+  #if ($services.job.getJobStatus(['confluence', 'spaceanalysis']).state || "$!request.nb" != '')
+    == $services.localization.render('confluence.migrator.spaceanalysis.job') ==
+    {{include reference="Confluence.Tools.ConfluenceSpaceAnalysisJob" /}}
+  #end
+  #set ($nbdocs = "100")
+  #if ($request.nbdocs)
+    #set ($nbdocs = $request.nbdocs)
+  #end
+  #set ($nb = "1")
+  #if ($request.nb)
+    #set ($nb = $request.nb)
+  #end
+  #if ("$request.confirm" != 'true')
+    {{html clean=false}}
+      &lt;form action="${escapetool.xml($spaceAnalysisURL)}" class="xform"&gt;
+        &lt;dl&gt;
+          &lt;dt&gt;
+            &lt;label for=""&gt;
+              $services.localization.render('confluence.migrator.spaceanalysis.nbdocs')
+            &lt;/label&gt;
+            &lt;span class="xHint"&gt;
+              $services.localization.render('confluence.migrator.spaceanalysis.nbdocshint')
+            &lt;/span&gt;
+          &lt;/dt&gt;
+          &lt;dd&gt;
+            &lt;input type="text" name="nbdocs" value="${escapetool.xml($nbdocs)}" size="5" /&gt;
+          &lt;/dd&gt;
+          &lt;dt&gt;
+            &lt;label for=""&gt;
+              $services.localization.render('confluence.migrator.spaceanalysis.start')
+            &lt;/label&gt;
+            &lt;span class="xHint"&gt;
+              $services.localization.render('confluence.migrator.spaceanalysis.starthint')
+            &lt;/span&gt;
+          &lt;/dt&gt;
+          &lt;dd&gt;
+            &lt;input type="text" name="start" value="0" size="5"  /&gt;
+          &lt;/dd&gt;
+          &lt;dt&gt;
+            &lt;label for=""&gt;
+              $services.localization.render('confluence.migrator.spaceanalysis.nbruns')
+            &lt;/label&gt;
+            &lt;span class="xHint"&gt;
+              $services.localization.render('confluence.migrator.spaceanalysis.nbrunshint')
+            &lt;/span&gt;
+          &lt;/dt&gt;
+          &lt;dd&gt;
+            &lt;input type="text" name="nb" value="${escapetool.xml($nb)}" size="5" /&gt;
+          &lt;/dd&gt;
+          &lt;dt&gt;&lt;dt&gt;
+          &lt;dd&gt;
+            &lt;input name="ancestor" type="checkbox" value="1"  /&gt; $services.localization.render('confluence.migrator.spaceanalysis.hierarchy')
+          &lt;/dd&gt;
+          &lt;dt&gt;&lt;dt&gt;
+          &lt;dd&gt;
+            &lt;input name="importcheck" type="checkbox" value="1"  /&gt; $services.localization.render('confluence.migrator.spaceanalysis.importcheck')
+          &lt;/dd&gt;
+        &lt;/dl&gt;
+        &lt;input name="confirm" type="hidden" value="true" /&gt;
+        &lt;input name="submit" type="submit" value="$services.localization.render('confluence.migrator.spaceanalysis.go')" class="button" /&gt;
+      &lt;/form&gt;
+    {{/html}}
+  #else
+    #set ($qs = "nb=$!{nb}&amp;nbdocs=$!{nbdocs}")
+    $response.sendRedirect($doc.getURL("view", $qs))
+  #end
 {{/velocity}}</content>
   <class>
     <name>Confluence.Tools.ConfluenceSpaceAnalysis.WebHome</name>

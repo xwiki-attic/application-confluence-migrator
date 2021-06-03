@@ -44,7 +44,8 @@
 #set($migratorProfileTemplateName = 'Confluence.Tools.MigrationProfileTemplate')
 #set($activeProfileClassName = 'Confluence.Tools.ActiveMigrationProfileClass')
 #set($steps = {
- 1 : {'id' : 'prerequisites', 'reference' : 'Confluence.Tools.Prerequisites'}
+ 1 : {'id' : 'prerequisites', 'reference' : 'Confluence.Tools.Prerequisites'},
+ 2 : {'id' : 'spaceanalysis', 'reference' : 'Confluence.Tools.ConfluenceSpaceAnalysis.WebHome'}
 })
 #set ($hiddenMigrationProfileProperties = ['activeStep', 'stepsTaken'])
 {{/velocity}}</content>
