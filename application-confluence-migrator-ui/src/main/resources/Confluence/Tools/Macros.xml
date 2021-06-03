@@ -75,8 +75,8 @@
     #set ($activeProfileObj = $xwiki.getDocument($migratorProfilesHomePage).getObject($activeProfileClassName))
     #if ($activeProfileObj)
       #set ($macro.activeProfile = $activeProfileObj.getProperty('profile').value)
-      #set ($$macro.activeStep = $activeProfileObj.getProperty('activeStep').value)
-      #set ($$macro.stepsTaken = $activeProfileObj.getProperty('stepsTaken').value)
+      #set ($macro.activeStep = $activeProfileObj.getProperty('activeStep').value)
+      #set ($macro.stepsTaken = $activeProfileObj.getProperty('stepsTaken').value)
     #end
     #set ($activeProfile = $NULL)
     #set ($activeStep = $NULL)
