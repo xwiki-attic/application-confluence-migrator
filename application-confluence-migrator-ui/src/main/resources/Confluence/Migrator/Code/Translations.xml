@@ -43,6 +43,9 @@ confluence.migrator.step.prerequisites.description=Prerequisites
 confluence.migrator.step.spaceanalysis.label=Step 2
 confluence.migrator.step.spaceanalysis.description=Space analysis
 ### Profile
+confluence.migrator.profile=Profile
+confluence.migrator.profile.edit=({0}edit{1})
+confluence.migrator.profile.confluenceSpaceURL=Confluence Space URL
 confluence.migrator.profile.title=Title
 confluence.migrator.profile.titlehint=The title of the profile
 Confluence.Tools.MigrationProfileClass_0_username=Username

@@ -97,9 +97,10 @@
   #end
   ## Display active profile basic parameters : URL and Space name
   #macro (displayActiveProfileBasicParameters $activeProfileDoc)
-    #foreach ($propertyName in ['url', 'space'])
-      * **$services.localization.render("${migratorProfileClassName}_0_${propertyName}")** : $activeProfileDoc.display($propertyName)
-    #end
+    #set ($confluenceSpaceURL = $activeProfileDoc.getValue('url') + '/wiki/spaces/' + $activeProfileDoc.getValue('space'))
+    * **$services.localization.render('confluence.migrator.profile')** : $activeProfileDoc.title $services.localization.render(
+      'confluence.migrator.profile.edit', ['[[', "&gt;&gt;path:$activeProfileDoc.getURL('edit')||target='_blank']]"])
+    * **$services.localization.render('confluence.migrator.profile.confluenceSpaceURL')** : [[$confluenceSpaceURL||target="_blank"]]
   #end
 {{/velocity}}</content>
 </xwikidoc>
