@@ -51,6 +51,7 @@
     <smart.wizard.version>5.1.1</smart.wizard.version>
     <macro.job.version>1.5.1</macro.job.version>
     <commons.lang3.version>3.11</commons.lang3.version>
+    <listeneradmin.version>1.0.1</listeneradmin.version>
   </properties>
    <dependencyManagement>
     <dependencies>
