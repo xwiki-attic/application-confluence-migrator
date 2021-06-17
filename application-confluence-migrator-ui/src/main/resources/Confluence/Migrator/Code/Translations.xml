@@ -44,6 +44,8 @@ confluence.migrator.step.spaceanalysis.label=Step 2
 confluence.migrator.step.spaceanalysis.description=Space analysis
 confluence.migrator.step.confluenceexport.label=Step 3
 confluence.migrator.step.confluenceexport.description=Confluence export
+confluence.migrator.step.execution.label=Step 4
+confluence.migrator.step.execution.description=XWiki import
 ### Profile
 confluence.migrator.profile=Profile
 confluence.migrator.profile.edit=({0}edit{1})
@@ -148,7 +150,16 @@ confluence.migrator.spaceanalysis.report.nolonghierarchies=None.
 
 ### Confluence export
 confluence.migration.export.title=Confluence space export
-confluence.migration.export.description=At this step, a full export of the space must be ran from your Confluence instance:\n* Go to the space and choose Space tools &gt; Content Tools from the bottom of the sidebar\n* Choose Export\n* Select XML, then choose Next\n* Select Full export \n* Choose Export\n\nThat the XML resulted from the export will be used in the following step where the migration will start.</content>
+confluence.migration.export.description=At this step, a full export of the space must be ran from your Confluence instance:\n* Go to the space and choose Space tools &gt; Content Tools from the bottom of the sidebar\n* Choose Export\n* Select XML, then choose Next\n* Select Full export \n* Choose Export\n\nThat the XML resulted from the export will be used in the following step where the migration will start.
+
+## Import (Filter)
+confluence.migrator.input=Input
+confluence.migrator.output=Output
+confluence.migrator.input.source=Source
+confluence.migrator.input.source.description=The source to load the Confluence pages from.
+confluence.migrator.input.source.supportedformats=Supported formats are &lt;strong&gt;file:&amp;lt;path on server&amp;gt;&lt;/strong&gt; (e.g. &lt;strong&gt;file:/home/myuser/myfile.zip&lt;/strong&gt;) and &lt;strong&gt;url:&amp;lt;url&amp;gt;&lt;/strong&gt; (e.g. &lt;strong&gt;http://myserver/some/file/to/myfile.zip&lt;/strong&gt;).
+confluence.migrator.advanced=Advanced setup
+confluence.migrator.import=Import</content>
   <object>
     <name>Confluence.Migrator.Code.Translations</name>
     <number>0</number>

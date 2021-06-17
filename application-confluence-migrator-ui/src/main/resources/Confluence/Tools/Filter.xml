@@ -1,0 +1,223 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.3" reference="Confluence.Tools.Filter" locale="">
+  <web>Confluence.Tools</web>
+  <name>Filter</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity output="false"}}
+  #set ($input = 'confluence+xml')
+  #set ($output = 'xwiki+instance')
+  #macro (displayInputFormField $propertyDescriptor)
+    #displayFormField('input' $propertyDescriptor)
+  #end
+  #macro (displayOutputFormField $propertyDescriptor)
+    #displayFormField('output' $propertyDescriptor)
+  #end
+  #macro (displayFormField $type $propertyDescriptor)
+    #set ($propertyDescriptorId = $propertyDescriptor.id)
+    #set ($propertyDescriptorInputId = "filter_${type}_properties_descriptor_${propertyDescriptorId}")
+    #set ($propertyDescriptorLabel = $services.localization.render("confluence.migrator.${propertyDescriptorId}"))
+    #if ("$!propertyDescriptorLabel" == "confluence.migrator.$propertyDescriptorId")
+      #set ($propertyDescriptorLabel = $propertyDescriptor.name)
+    #end
+    #set ($propertyDescriptorAbout = $services.localization.render("confluence.migrator.${propertyDescriptorId}.description"))
+    #if ("$!propertyDescriptorAbout" == "confluence.migrator.${propertyDescriptorId}.description")
+      #set ($propertyDescriptorAbout = $propertyDescriptor.description)
+    #end
+    #set ($propertyDescriptorSupportedFormats = $services.localization.render("confluence.migrator.${propertyDescriptorId}.supportedformats"))
+    &lt;dt&gt;
+      &lt;label for="$propertyDescriptorInputId"&gt;$propertyDescriptorLabel&lt;/label&gt;
+      #if ("$!propertyDescriptorAbout" != '')
+        &lt;span class="xHint"&gt;$propertyDescriptorAbout&lt;/span&gt;
+      #end
+      #if ("$!propertyDescriptorSupportedFormats" != "confluence.migrator.${propertyDescriptorId}.supportedformats")
+        &lt;span class="xHint"&gt;&lt;tt&gt;$propertyDescriptorSupportedFormats&lt;/tt&gt;&lt;/span&gt;
+      #end
+    &lt;/dt&gt;
+    &lt;dd&gt;
+      #set ($fieldValue = '')
+      #foreach ($typeDefaultEntry in $filterDefaults.get($type).entrySet())
+        #if ($typeDefaultEntry.key == $propertyDescriptorId)
+          #set ($fieldValue = $typeDefaultEntry.value)
+        #end
+      #end
+      #set ($propertyDescriptorInputValue = $propertyDescriptor.defaultValue)
+      #if ("$!request.get($propertyDescriptorInputId)" != '')
+        #set ($propertyDescriptorInputValue = $request.get($propertyDescriptorInputId))
+      #elseif ("$!fieldValue" != '')
+        #set ($propertyDescriptorInputValue = $fieldValue)
+      #end
+      &lt;input type="text" id="$propertyDescriptorInputId" name="$propertyDescriptorInputId"
+        value="$!escapetool.xml($propertyDescriptorInputValue)" /&gt;
+    &lt;/dd&gt;
+  #end
+  #macro (displayFormFieldInline $type $id $defaultValue $withSupportedFormats $withValidation)
+    &lt;dt&gt;
+      &lt;label for="filter_${type}_properties_descriptor_${id}"&gt;$services.localization.render("confluence.migrator.${type}.${id}")&lt;/label&gt;
+      &lt;span class="xHint"&gt;$services.localization.render("confluence.migrator.${type}.${id}.description")&lt;/span&gt;
+      #if ($withSupportedFormats)
+        &lt;span class="xHint"&gt;&lt;tt&gt;$services.localization.render("confluence.migrator.${type}.${id}.supportedformats")&lt;/tt&gt;&lt;/span&gt;
+      #end
+    &lt;/dt&gt;
+    &lt;dd&gt;
+      #set ($fieldValue = '')
+      #set ($fieldValue = $!request.get("filter_${type}_properties_descriptor_${id}"))
+      #if ("$!fieldValue" == '' &amp;&amp; "$!defaultValue" != '')
+        #set ($fieldValue = $defaultValue)
+      #end
+      &lt;input id="filter_${type}_properties_descriptor_${id}" name="filter_${type}_properties_descriptor_${id}"
+        type="text" value="$!escapetool.xml($fieldValue)" /&gt;
+      #if ($withValidation)
+        &lt;div id="filter_${type}_properties_descriptor_${id}_invalid" class="field-invalid hidden"&gt;
+          $services.localization.render("confluence.migrator.${type}.${id}.invalid")
+        &lt;/div&gt;
+      #end
+    &lt;/dd&gt;
+  #end
+
+  ## Get request data
+  #set ($inputProperties = {})
+  #foreach ($parameterName in $request.parameterNames)
+    #if ($parameterName.startsWith('filter_input_properties_descriptor_'))
+      #set ($propertyName = $parameterName.substring(35))
+      #if ("$!request.getParameter($parameterName)" != '')
+        #set ($discard = $inputProperties.put($propertyName, $request.getParameter($parameterName)))
+      #end
+    #end
+  #end
+
+  ## Set request input by default
+  #if (!$inputProperties.source &amp;&amp; $services.filter.getInputFilterStreamDescriptor($input).getPropertyDescriptor('source'))
+    #set ($sourceStandardInput = true)
+    #set ($discard = $inputProperties.put('source', $request.inputStream))
+  #end
+
+  #set($outputProperties = {})
+  #foreach ($parameterName in $request.parameterNames)
+    #if ($parameterName.startsWith('filter_output_properties_descriptor_'))
+      #set ($propertyName = $parameterName.substring(36))
+      #if ("$!request.getParameter($parameterName)" != '')
+        #set ($discard = $outputProperties.put($propertyName, $request.getParameter($parameterName)))
+      #end
+    #end
+  #end
+
+  ## Set response output by default
+  #if (!$outputProperties.target &amp;&amp; $services.filter.getOutputFilterStreamDescriptor($request.output).getPropertyDescriptor('target'))
+    #set ($targetStandardOutput = true)
+    #set ($discard = $outputProperties.put('target', $services.filter.createOutputStreamOutputTarget($response.outputStream, true)))
+  #end
+{{/velocity}}
+
+{{velocity}}
+#if ($request.convert)
+  #if ($targetStandardOutput)
+    #set ($discard = $response.setContentType('application/octet-stream'))
+    #set ($discard = $response.setHeader('Content-Disposition', 'attachment; filename=target'))
+    #set ($discard = $services.filter.convert($input, $inputProperties, $output, $outputProperties))
+    #set ($discard = $xcontext.setFinished(true))
+  #else
+    #if ($sourceStandardInput)
+      #set ($job = $services.filter.convert($input, $inputProperties, $output, $outputProperties))
+    #else
+      #set ($job = $services.filter.startConvert($input, $inputProperties, $output, $outputProperties))
+    #end
+    #if ($job)
+      #if (!$sourceStandardInput)
+        {{success}}Conversion started.{{/success}}
+      #end
+    #else
+      #set ($lastError = $services.filter.lastError)
+      #if ($lastError)
+        {{error}}
+          Failed to start conversion
+
+          {{html}}
+            &lt;pre&gt;
+              #printThrowable($lastError)
+            &lt;/pre&gt;
+          {{/html}}
+        {{/error}}
+      #end
+    #end
+  #end
+#end
+
+#set ($job = $services.filter.currentJob)
+  #if ("$!job" != '')
+    == Current conversion ==
+
+    {{include reference="Confluence.Tools.Filter.FilterStreamJob" /}}
+  #end
+
+  == Configuration ==
+
+  {{html clean="false"}}
+    &lt;form class="xform" method="post"&gt;
+      &lt;div class="hidden"&gt;
+        &lt;input type="hidden" name="form_token" value="$!services.csrf.getToken()"&gt;
+        &lt;input type="hidden" name="xredirect" value="$doc.getURL('view', '#step-4')"&gt;
+      &lt;/div&gt;
+      &lt;input type="hidden" name="import" value="true" /&gt;
+      &lt;h2&gt;$services.localization.render('confluence.migrator.input')&lt;/h2&gt;
+      &lt;dl&gt;
+        #displayFormFieldInline('input' 'source' $NULL true true)
+      &lt;/dl&gt;
+      &lt;div class="collapse confluence-migrator-collapse" id="advancedInputFields"&gt;
+        &lt;dl&gt;
+          #set ($descriptor = $services.filter.getInputFilterStreamDescriptor($input))
+          #foreach ($propertyDescriptor in $descriptor.properties)
+            #if ($propertyDescriptor.id != 'source')
+              #displayInputFormField($propertyDescriptor)
+            #end
+          #end
+        &lt;/dl&gt;
+        &lt;h2&gt;$services.localization.render('confluence.migrator.output')&lt;/h2&gt;
+        &lt;dl&gt;
+          #set ($descriptor = $services.filter.getOutputFilterStreamDescriptor($output))
+          #foreach ($propertyDescriptor in $descriptor.properties)
+            #displayOutputFormField($propertyDescriptor)
+          #end
+        &lt;/dl&gt;
+      &lt;/div&gt;
+      &lt;a data-toggle="collapse" href="#advancedInputFields" role="button" aria-expanded="false" aria-controls="advancedInputFields" class="advanced-fields collapsed"&gt;
+        $services.localization.render('confluence.migrator.advanced')
+      &lt;/a&gt;
+      &lt;input class="btn btn-primary confluence-migrator-import-start" type="submit" name="convert"
+        value="$escapetool.xml($services.localization.render('confluence.migrator.import'))" /&gt;
+    &lt;/form&gt;
+  {{/html}}
+{{/velocity}}</content>
+</xwikidoc>
