@@ -42,6 +42,8 @@ confluence.migrator.step.prerequisites.label=Step 1
 confluence.migrator.step.prerequisites.description=Prerequisites
 confluence.migrator.step.spaceanalysis.label=Step 2
 confluence.migrator.step.spaceanalysis.description=Space analysis
+confluence.migrator.step.confluenceexport.label=Step 3
+confluence.migrator.step.confluenceexport.description=Confluence export
 ### Profile
 confluence.migrator.profile=Profile
 confluence.migrator.profile.edit=({0}edit{1})
@@ -146,9 +148,7 @@ confluence.migrator.spaceanalysis.report.nolonghierarchies=None.
 
 ### Confluence export
 confluence.migration.export.title=Confluence space export
-confluence.migration.export.description=At this step, a full export of the space must be ran from your Confluence instance:\n* Go to the space and choose Space tools &gt; Content Tools from the bottom of the sidebar\n* Choose Export\n* Select XML, then choose Next\n* Select Full export \n* Choose Export\n\nThat the XML resulted from the export will be used in the following step where the migration will start.
-confluence.migrator.step.confluenceexport.label=Step 3
-confluence.migrator.step.confluenceexport.description=Confluence export</content>
+confluence.migration.export.description=At this step, a full export of the space must be ran from your Confluence instance:\n* Go to the space and choose Space tools &gt; Content Tools from the bottom of the sidebar\n* Choose Export\n* Select XML, then choose Next\n* Select Full export \n* Choose Export\n\nThat the XML resulted from the export will be used in the following step where the migration will start.</content>
   <object>
     <name>Confluence.Migrator.Code.Translations</name>
     <number>0</number>
