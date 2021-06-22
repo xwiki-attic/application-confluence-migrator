@@ -41,13 +41,10 @@
 
 {{info}}$services.localization.render('confluence.migrator.prerequisites.description'){{/info}}
 
-{{/velocity}}
-
 XWiki should be set with very large memory settings, high cache:
 
 * Set -Xmx and -Xms to half the memory of the machine (16g for 32g RAM)
 * Set cache to 5000 in xwiki.cfg (instead of 500)
-* deactivate notifications in xwiki.properties (optional)
 
 Heavy processes should be disabled:
 
@@ -55,22 +52,26 @@ Heavy processes should be disabled:
 * Deactivate notifications on your own profile ("never" for automatic page watching, disable page notifications)
 * Clean Notifications: run [[CleanNotificationsPrefs&gt;&gt;Confluence.Tools.CleanNotificationsPrefs]] (optional)
 * Deactivate SOLR and Notifications listeners
-** Deactivate SOLR and Notification listeners from XWiki.ListenerAdmin page on main wiki :
+** from XWiki.ListenerAdmin page on main wiki :
 *** [[SolrIndexEventListener&gt;&gt;XWiki.ListenerAdmin||queryString="language=#%7Ct=listeners&amp;p=1&amp;l=8&amp;s=listenerName&amp;d=asc&amp;listenerClass=solr"]] (optional, as this would disable SOLR indexing for the whole farm)
 *** [[DocumentMovedListener, AutomaticWatchModeListener, LiveNotificationEmailListener&gt;&gt;XWiki.ListenerAdmin||queryString="language=#%7Ct=listeners&amp;p=1&amp;l=8&amp;s=listenerName&amp;d=asc&amp;listenerClass=notifications"]] (important for large spaces)
 
-Modify Nested Spaces Migrator:
+## The document reference size limit was increased from 255 to 768 (the maximum supported by MySQL) in XWiki 13.2.
+#if ($services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-model').id.version.compareTo('13.2') &lt;= 0)
+  Modify Nested Spaces Migrator:
 
-This change is important to avoid failure of the Nested Page Migrator on the DocumentMovedListener.
+  This change is important to avoid failure of the Nested Page Migrator on the DocumentMovedListener.
 
-* Edit in object mode [[NestedPagesMigration&gt;&gt;NestedPagesMigration.WebHome]]
-* Open 2nd Javascript Object, line 49:
+  * Edit in object mode [[NestedPagesMigration&gt;&gt;NestedPagesMigration.WebHome]]
+  * Open 2nd Javascript Object, line 49:
 
-Change {{code}}255{{/code}} to {{code}}(254 - XWiki.currentWiki.length){{/code}}:
+  Change {{code}}255{{/code}} to {{code}}(254 - XWiki.currentWiki.length){{/code}}:
 
-{{code}}
-self.isTooLong = function () {
-  return self.serializedTargetDocument().length &gt; (254 - XWiki.currentWiki.length);
-}
-{{/code}}</content>
+  {{code}}
+  self.isTooLong = function () {
+    return self.serializedTargetDocument().length &gt; (254 - XWiki.currentWiki.length);
+  }
+  {{/code}}
+#end
+{{/velocity}}</content>
 </xwikidoc>
