@@ -38,7 +38,7 @@
   <hidden>false</hidden>
   <content>{{groovy}}
 def notificationFilterPreferenceService = services.component.componentManager.getInstance(org.xwiki.notifications.filters.NotificationFilterPreferenceManager.class)
-def userReference = services.model.createDocumentReference("xwiki", "XWiki", "ldubost")
+def userReference = xcontext.userReference
 def filters = notificationFilterPreferenceService.getFilterPreferences(userReference)
 filters.eachWithIndex() {
   it, index -&gt;
