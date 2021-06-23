@@ -45,7 +45,7 @@
 #set($activeProfileClassName = 'Confluence.Tools.ActiveMigrationProfileClass')
 #set($steps = {
  1 : {'id' : 'prerequisites', 'reference' : 'Confluence.Tools.Prerequisites'},
- 2 : {'id' : 'spaceanalysis', 'reference' : 'Confluence.Tools.ConfluenceSpaceAnalysis'},
+ 2 : {'id' : 'spaceanalysis', 'reference' : 'Confluence.Tools.ConfluenceSpaceAnalysis.WebHome'},
  3 : {'id' : 'confluenceexport', 'reference' : 'Confluence.Tools.ConfluenceExport'},
  4 : {'id' : 'execution', 'reference' : 'Confluence.Tools.Filter'}
 })

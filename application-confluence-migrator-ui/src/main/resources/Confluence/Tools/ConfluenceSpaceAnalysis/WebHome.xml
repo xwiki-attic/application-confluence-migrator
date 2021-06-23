@@ -20,14 +20,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.3" reference="Confluence.Tools.ConfluenceSpaceAnalysis" locale="">
-  <web>Confluence.Tools</web>
-  <name>ConfluenceSpaceAnalysis</name>
+<xwikidoc version="1.4" reference="Confluence.Tools.ConfluenceSpaceAnalysis.WebHome" locale="">
+  <web>Confluence.Tools.ConfluenceSpaceAnalysis</web>
+  <name>WebHome</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>WebHome</parent>
+  <parent>Confluence.Tools.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
@@ -115,4 +115,96 @@
     $response.sendRedirect($doc.getURL("view", $qs))
   #end
 {{/velocity}}</content>
+  <class>
+    <name>Confluence.Tools.ConfluenceSpaceAnalysis.WebHome</name>
+    <customClass/>
+    <customMapping/>
+    <defaultViewSheet/>
+    <defaultEditSheet/>
+    <defaultWeb/>
+    <nameField/>
+    <validationScript/>
+    <key>
+      <algorithm/>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>key</name>
+      <number>1</number>
+      <picker>1</picker>
+      <prettyName>key</prettyName>
+      <size>30</size>
+      <storageType>Clear</storageType>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.PasswordClass</classType>
+    </key>
+    <username>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>username</name>
+      <number>2</number>
+      <picker>1</picker>
+      <prettyName>username</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </username>
+  </class>
+  <object>
+    <name>Confluence.Tools.ConfluenceSpaceAnalysis.WebHome</name>
+    <number>0</number>
+    <className>Confluence.Tools.ConfluenceSpaceAnalysis.WebHome</className>
+    <guid>9c949238-c44d-4fe1-98fe-ea052bc5edb0</guid>
+    <class>
+      <name>Confluence.Tools.ConfluenceSpaceAnalysis.WebHome</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <key>
+        <algorithm/>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>key</name>
+        <number>1</number>
+        <picker>1</picker>
+        <prettyName>key</prettyName>
+        <size>30</size>
+        <storageType>Clear</storageType>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.PasswordClass</classType>
+      </key>
+      <username>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>username</name>
+        <number>2</number>
+        <picker>1</picker>
+        <prettyName>username</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </username>
+    </class>
+    <property>
+      <key/>
+    </property>
+    <property>
+      <username/>
+    </property>
+  </object>
 </xwikidoc>

@@ -62,7 +62,7 @@
     }
   }
 
-  def configPageId = 'Confluence.Tools.ConfluenceSpaceAnalysis'
+  def configPageId = 'Confluence.Tools.ConfluenceSpaceAnalysis.WebHome'
   def configDoc = xwiki.getDocument(configPageId)
   def configClass = 'Confluence.Tools.ConfluenceInstanceAuthenticationClass'
   def configObj = configDoc.getObject(configClass)

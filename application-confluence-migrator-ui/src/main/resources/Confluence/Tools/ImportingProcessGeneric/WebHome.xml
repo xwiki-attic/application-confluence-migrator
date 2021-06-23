@@ -48,7 +48,7 @@ It might be needed to do some precleaning of the Confluence space, truncating pa
 
 The following processes with cut page name to less than 30 characters. This allows 8 level of hierarchies if all pages are 30 characters, and slightly more if some are shorter. Ideally the page titles (which will become the page names in XWiki) at the top of the hierarchy should be as short as possible if the hierarchy is deep.
 
-The [[ConfluenceSpaceAnalysis&gt;&gt;Confluence.Tools.ConfluenceSpaceAnalysis]] allows to detect pages that are too long and will not import. It also allows to count the number of pages that should be imported. This tool will require a "Confluence API token" to connect to the live Confluence instance.
+The [[ConfluenceSpaceAnalysis&gt;&gt;Confluence.Tools.ConfluenceSpaceAnalysis.WebHome]] allows to detect pages that are too long and will not import. It also allows to count the number of pages that should be imported. This tool will require a "Confluence API token" to connect to the live Confluence instance.
 
 === Confluence Export ===
 
