@@ -43,29 +43,25 @@
 
   {{info}}$services.localization.render('confluence.migrator.spaceanalysis.description'){{/info}}
 
-  #set ($spaceAnalysisHomeDoc = $xwiki.getDocument($spaceAnalysisHomePage))
-  #set ($configObj = $spaceAnalysisHomeDoc.getObject($configClass))
-  #set ($displayAuthenticationForm = "$!request.config" == '1')
   #set ($spaceAnalysisURL = $xwiki.getURL($migratorHomePage, 'view', '#step-2'))
-
   #if ($services.job.getJobStatus(['confluence', 'spaceanalysis']).state || "$!request.nb" != '')
     == $services.localization.render('confluence.migrator.spaceanalysis.job') ==
     {{include reference="Confluence.Tools.ConfluenceSpaceAnalysisJob" /}}
   #end
-  #set ($nbdocs = "100")
-  #if ($request.nbdocs)
+  #set ($nbdocs = '100')
+  #if ("$!request.nbdocs" != '')
     #set ($nbdocs = $request.nbdocs)
   #end
-  #set ($nb = "1")
-  #if ($request.nb)
+  #set ($nb = '1')
+  #if ("$!request.nb" != '')
     #set ($nb = $request.nb)
   #end
   #if ("$request.confirm" != 'true')
     {{html clean=false}}
-      &lt;form action="${escapetool.xml($spaceAnalysisURL)}" class="xform"&gt;
+      &lt;form action="$escapetool.xml($spaceAnalysisURL)" class="xform"&gt;
         &lt;dl&gt;
           &lt;dt&gt;
-            &lt;label for=""&gt;
+            &lt;label for="nbdocs"&gt;
               $services.localization.render('confluence.migrator.spaceanalysis.nbdocs')
             &lt;/label&gt;
             &lt;span class="xHint"&gt;
@@ -73,10 +69,10 @@
             &lt;/span&gt;
           &lt;/dt&gt;
           &lt;dd&gt;
-            &lt;input type="text" name="nbdocs" value="${escapetool.xml($nbdocs)}" size="5" /&gt;
+            &lt;input type="text" name="nbdocs" id="nbdocs" value="$escapetool.xml($nbdocs)" size="5" /&gt;
           &lt;/dd&gt;
           &lt;dt&gt;
-            &lt;label for=""&gt;
+            &lt;label for="start"&gt;
               $services.localization.render('confluence.migrator.spaceanalysis.start')
             &lt;/label&gt;
             &lt;span class="xHint"&gt;
@@ -84,10 +80,10 @@
             &lt;/span&gt;
           &lt;/dt&gt;
           &lt;dd&gt;
-            &lt;input type="text" name="start" value="0" size="5"  /&gt;
+            &lt;input type="text" name="start" id="start" value="0" size="5"  /&gt;
           &lt;/dd&gt;
           &lt;dt&gt;
-            &lt;label for=""&gt;
+            &lt;label for="nb"&gt;
               $services.localization.render('confluence.migrator.spaceanalysis.nbruns')
             &lt;/label&gt;
             &lt;span class="xHint"&gt;
@@ -95,15 +91,21 @@
             &lt;/span&gt;
           &lt;/dt&gt;
           &lt;dd&gt;
-            &lt;input type="text" name="nb" value="${escapetool.xml($nb)}" size="5" /&gt;
+            &lt;input type="text" name="nb" id="nb" value="$escapetool.xml($nb)" size="5" /&gt;
           &lt;/dd&gt;
           &lt;dt&gt;&lt;dt&gt;
           &lt;dd&gt;
-            &lt;input name="ancestor" type="checkbox" value="1"  /&gt; $services.localization.render('confluence.migrator.spaceanalysis.hierarchy')
+            &lt;label&gt;
+              &lt;input name="ancestor" type="checkbox" value="1" /&gt;
+              $services.localization.render('confluence.migrator.spaceanalysis.hierarchy')
+            &lt;/label&gt;
           &lt;/dd&gt;
           &lt;dt&gt;&lt;dt&gt;
           &lt;dd&gt;
-            &lt;input name="importcheck" type="checkbox" value="1"  /&gt; $services.localization.render('confluence.migrator.spaceanalysis.importcheck')
+            &lt;label&gt;
+              &lt;input name="importcheck" type="checkbox" value="1" /&gt;
+              $services.localization.render('confluence.migrator.spaceanalysis.importcheck')
+            &lt;/label&gt;
           &lt;/dd&gt;
         &lt;/dl&gt;
         &lt;input name="confirm" type="hidden" value="true" /&gt;
@@ -115,96 +117,4 @@
     $response.sendRedirect($doc.getURL("view", $qs))
   #end
 {{/velocity}}</content>
-  <class>
-    <name>Confluence.Tools.ConfluenceSpaceAnalysis</name>
-    <customClass/>
-    <customMapping/>
-    <defaultViewSheet/>
-    <defaultEditSheet/>
-    <defaultWeb/>
-    <nameField/>
-    <validationScript/>
-    <key>
-      <algorithm/>
-      <customDisplay/>
-      <disabled>0</disabled>
-      <hint/>
-      <name>key</name>
-      <number>1</number>
-      <picker>1</picker>
-      <prettyName>key</prettyName>
-      <size>30</size>
-      <storageType>Clear</storageType>
-      <unmodifiable>0</unmodifiable>
-      <validationMessage/>
-      <validationRegExp/>
-      <classType>com.xpn.xwiki.objects.classes.PasswordClass</classType>
-    </key>
-    <username>
-      <customDisplay/>
-      <disabled>0</disabled>
-      <hint/>
-      <name>username</name>
-      <number>2</number>
-      <picker>1</picker>
-      <prettyName>username</prettyName>
-      <size>30</size>
-      <unmodifiable>0</unmodifiable>
-      <validationMessage/>
-      <validationRegExp/>
-      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-    </username>
-  </class>
-  <object>
-    <name>Confluence.Tools.ConfluenceSpaceAnalysis</name>
-    <number>0</number>
-    <className>Confluence.Tools.ConfluenceSpaceAnalysis</className>
-    <guid>9c949238-c44d-4fe1-98fe-ea052bc5edb0</guid>
-    <class>
-      <name>Confluence.Tools.ConfluenceSpaceAnalysis</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <key>
-        <algorithm/>
-        <customDisplay/>
-        <disabled>0</disabled>
-        <hint/>
-        <name>key</name>
-        <number>1</number>
-        <picker>1</picker>
-        <prettyName>key</prettyName>
-        <size>30</size>
-        <storageType>Clear</storageType>
-        <unmodifiable>0</unmodifiable>
-        <validationMessage/>
-        <validationRegExp/>
-        <classType>com.xpn.xwiki.objects.classes.PasswordClass</classType>
-      </key>
-      <username>
-        <customDisplay/>
-        <disabled>0</disabled>
-        <hint/>
-        <name>username</name>
-        <number>2</number>
-        <picker>1</picker>
-        <prettyName>username</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <validationMessage/>
-        <validationRegExp/>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </username>
-    </class>
-    <property>
-      <key/>
-    </property>
-    <property>
-      <username/>
-    </property>
-  </object>
 </xwikidoc>
