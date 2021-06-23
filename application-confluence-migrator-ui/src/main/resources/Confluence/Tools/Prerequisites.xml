@@ -50,7 +50,7 @@ Heavy processes should be disabled:
 
 * Deactivate notifications in xwiki.properties (optional)
 * Deactivate notifications on your own profile ("never" for automatic page watching, disable page notifications)
-* Clean Notifications: run [[CleanNotificationsPrefs&gt;&gt;Confluence.Tools.CleanNotificationsPrefs]] (optional)
+* Clean Notifications: run [[CleanNotificationsPrefs&gt;&gt;Confluence.Tools.CleanNotificationsPrefs||target='_blank']] (optional)
 * Deactivate SOLR and Notifications listeners
 ** from XWiki.ListenerAdmin page on main wiki :
 #set ($listenerAdminDoc = $xwiki.getDocument('XWiki.ListenerAdmin'))
@@ -72,7 +72,7 @@ Heavy processes should be disabled:
 
   This change is important to avoid failure of the Nested Page Migrator on the DocumentMovedListener.
 
-  * Edit in object mode [[NestedPagesMigration&gt;&gt;NestedPagesMigration.WebHome]]
+  * Edit in object mode [[NestedPagesMigration&gt;&gt;NestedPagesMigration.WebHome||target='_blank']]
   * Open 2nd Javascript Object, line 49:
 
   Change {{code}}255{{/code}} to {{code}}(254 - XWiki.currentWiki.length){{/code}}:
