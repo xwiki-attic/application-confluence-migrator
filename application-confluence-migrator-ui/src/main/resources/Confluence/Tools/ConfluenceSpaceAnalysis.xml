@@ -20,9 +20,9 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="Confluence.Tools.ConfluenceSpaceAnalysis.WebHome" locale="">
-  <web>Confluence.Tools.ConfluenceSpaceAnalysis</web>
-  <name>WebHome</name>
+<xwikidoc version="1.4" reference="Confluence.Tools.ConfluenceSpaceAnalysis" locale="">
+  <web>Confluence.Tools</web>
+  <name>ConfluenceSpaceAnalysis</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
@@ -116,7 +116,7 @@
   #end
 {{/velocity}}</content>
   <class>
-    <name>Confluence.Tools.ConfluenceSpaceAnalysis.WebHome</name>
+    <name>Confluence.Tools.ConfluenceSpaceAnalysis</name>
     <customClass/>
     <customMapping/>
     <defaultViewSheet/>
@@ -156,12 +156,12 @@
     </username>
   </class>
   <object>
-    <name>Confluence.Tools.ConfluenceSpaceAnalysis.WebHome</name>
+    <name>Confluence.Tools.ConfluenceSpaceAnalysis</name>
     <number>0</number>
-    <className>Confluence.Tools.ConfluenceSpaceAnalysis.WebHome</className>
+    <className>Confluence.Tools.ConfluenceSpaceAnalysis</className>
     <guid>9c949238-c44d-4fe1-98fe-ea052bc5edb0</guid>
     <class>
-      <name>Confluence.Tools.ConfluenceSpaceAnalysis.WebHome</name>
+      <name>Confluence.Tools.ConfluenceSpaceAnalysis</name>
       <customClass/>
       <customMapping/>
       <defaultViewSheet/>
