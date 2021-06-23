@@ -58,7 +58,7 @@
   #end
   #if ("$request.confirm" != 'true')
     {{html clean=false}}
-      &lt;form action="$escapetool.xml($spaceAnalysisURL)" class="xform"&gt;
+      &lt;form action="$spaceAnalysisURL" class="xform"&gt;
         &lt;dl&gt;
           &lt;dt&gt;
             &lt;label for="nbdocs"&gt;
@@ -113,8 +113,11 @@
       &lt;/form&gt;
     {{/html}}
   #else
-    #set ($qs = "nb=$!{nb}&amp;nbdocs=$!{nbdocs}")
-    $response.sendRedirect($doc.getURL("view", $qs))
+    #set ($qs = $escapetool.url({
+      'nb' : $nb,
+      'nbdocs': $nbdocs
+    }))
+    $response.sendRedirect($doc.getURL('view', $qs))
   #end
 {{/velocity}}</content>
 </xwikidoc>
