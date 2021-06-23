@@ -53,8 +53,18 @@ Heavy processes should be disabled:
 * Clean Notifications: run [[CleanNotificationsPrefs&gt;&gt;Confluence.Tools.CleanNotificationsPrefs]] (optional)
 * Deactivate SOLR and Notifications listeners
 ** from XWiki.ListenerAdmin page on main wiki :
-*** [[SolrIndexEventListener&gt;&gt;XWiki.ListenerAdmin||queryString="language=#%7Ct=listeners&amp;p=1&amp;l=8&amp;s=listenerName&amp;d=asc&amp;listenerClass=solr"]] (optional, as this would disable SOLR indexing for the whole farm)
-*** [[DocumentMovedListener, AutomaticWatchModeListener, LiveNotificationEmailListener&gt;&gt;XWiki.ListenerAdmin||queryString="language=#%7Ct=listeners&amp;p=1&amp;l=8&amp;s=listenerName&amp;d=asc&amp;listenerClass=notifications"]] (important for large spaces)
+#set ($listenerAdminDoc = $xwiki.getDocument('XWiki.ListenerAdmin'))
+#set ($solrIndexURL = $listenerAdminDoc.getURL('view', '#|t=listeners&amp;listenerClass=SolrIndexEventListener'))
+#set ($automaticWatchURL = $listenerAdminDoc.getURL('view', '#|t=listeners&amp;listenerClass=AutomaticWatchModeListener'))
+#set ($liveNotificationURL = $listenerAdminDoc.getURL('view', '#|t=listeners&amp;listenerClass=LiveNotificationEmailListener'))
+*** [[SolrIndexEventListener&gt;&gt;path:$solrIndexURL||target='_blank']] (optional, as this would disable SOLR indexing for the whole farm)
+## The DocumentMovedListener is available from XWiki 11.3.
+#if ($services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-model').id.version.compareTo('11.3') &gt;= 0)
+  #set ($documentMovedURL = $listenerAdminDoc.getURL('view', '#|t=listeners&amp;listenerClass=DocumentMovedListener'))
+  *** [[DocumentMovedListener&gt;&gt;path:$documentMovedURL||target='_blank']] (important for large spaces)
+#end
+*** [[AutomaticWatchModeListener&gt;&gt;path:$automaticWatchURL||target='_blank']] (important for large spaces)
+*** [[LiveNotificationEmailListener&gt;&gt;path:$liveNotificationURL||target='_blank']] (important for large spaces)
 
 ## The document reference size limit was increased from 255 to 768 (the maximum supported by MySQL) in XWiki 13.2.
 #if ($services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-model').id.version.compareTo('13.2') &lt;= 0)
