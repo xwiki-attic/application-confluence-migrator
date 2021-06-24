@@ -48,24 +48,21 @@
   def space = null
   def baseUrl = null
   def username = null
-  def key = null
+  def token = null
+  def activeProfile = null
 
   def activeProfileObj = xwiki.getDocument("Confluence.Migrator.Profiles.WebHome").getObject("Confluence.Tools.ActiveMigrationProfileClass")
   if (activeProfileObj != null) {
-    def activeProfile = activeProfileObj.getProperty("profile").value
+    activeProfile = activeProfileObj.getProperty("profile").value
     if(activeProfile) {
       def profileObj = xwiki.getDocument(activeProfile).getObject("Confluence.Tools.MigrationProfileClass")
       space = profileObj.getProperty("space").value
       baseUrl = profileObj.getProperty("url").value
       username = profileObj.getProperty("username").value
-      key = profileObj.getProperty("token").value
+      token = profileObj.getProperty("token").value
     }
   }
 
-  def configPageId = 'Confluence.Tools.ConfluenceSpaceAnalysis'
-  def configDoc = xwiki.getDocument(configPageId)
-  def configClass = 'Confluence.Tools.ConfluenceInstanceAuthenticationClass'
-  def configObj = configDoc.getObject(configClass)
   def max = 240
   def limit = 100
   def maxNewNameLength = 40
@@ -225,7 +222,7 @@ ${docsHierarchyTooLongText}
   def pagesNotImported = []
   def pagesNotImportedOutput = ""
 
-  if ((username=="" || username==null || key=="" || key==null)) {
+  if ((username=="" || username==null || token=="" || token==null)) {
     log.error(services.localization.render('confluence.migrator.spaceanalysis.userandtokenmissing') + "username: " + username + " | token : " + token)
   } else if (space==null || space=="") {
     log.error(services.localization.render('confluence.migrator.spaceanalysis.spacemissing'))
@@ -245,7 +242,7 @@ ${docsHierarchyTooLongText}
       try {
         def url = searchUrl + start
         log.info(services.localization.render('confluence.migrator.spaceanalysis.infourl', [url]))
-        result = getContent(url, username, key)
+        result = getContent(url, username, token)
         def pages = jsonSlurper.parseText(result)
 
         log.info(services.localization.render('confluence.migrator.spaceanalysis.pagesfound', [pages.results.size()]))
@@ -331,11 +328,10 @@ ${docsHierarchyTooLongText}
     } catch (e) {
       log.error(services.localization.render('confluence.migrator.spaceanalysis.result.error', [e.getMessage()]))
     }
-    log.info(services.localization.render('confluence.migrator.spaceanalysis.result.url', [resultDoc.getURL()]))
+    log.info(services.localization.render('confluence.migrator.spaceanalysis.result.url', [resultDoc.getExternalURL()]))
     services.progress.popLevel()
     services.progress.endStep()
   }
 {{/groovy}}
-
 {{/job}}</content>
 </xwikidoc>
