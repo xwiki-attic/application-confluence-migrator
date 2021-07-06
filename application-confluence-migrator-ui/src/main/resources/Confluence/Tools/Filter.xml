@@ -179,7 +179,7 @@
   #if ("$!job" != '')
     == Current conversion ==
 
-    {{include reference="Confluence.Tools.Filter.FilterStreamJob" /}}
+    {{include reference="Confluence.Tools.FilterStreamJob" /}}
   #end
 
   == Configuration ==
