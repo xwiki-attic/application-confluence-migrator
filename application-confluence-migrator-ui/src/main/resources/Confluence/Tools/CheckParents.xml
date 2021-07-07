@@ -35,41 +35,393 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
-  <content>{{groovy}}
-def escapetool = new org.xwiki.velocity.tools.EscapeTool()
-def space = "";
-def nb = 10
-if (request.space)
- space = request.space
-if (request.nb)
- nb = Integer.parseInt(request.nb)
+  <hidden>true</hidden>
+  <content>{{include reference="Confluence.Tools.Macros" /}}
 
-println """
-{{html clean=false}}
-&lt;form action=""&gt;
-Space name: &lt;input type="text" name="space" value="${escapetool.xml(space)}" size="60" /&gt;&lt;br /&gt;
-Nb: &lt;input type="text" name="nb" value="${escapetool.xml(nb)}" size="10" /&gt;&lt;br /&gt;
-&lt;input name="submit" type="submit" value="Go" class="button" /&gt;
-&lt;/form&gt;
-{{/html}}
-"""
+{{include reference = "Confluence.Tools.Parameters" /}}
+
+{{velocity}}
+#set ($discard = $xwiki.ssx.use('Confluence.Tools.CheckParents'))
+#set ($discard = $xwiki.jsx.use('Confluence.Tools.CheckParents'))
+#set ($space = $activeProfileDoc.getValue('space'))
+#set ($nb = 10)
+#if ("$!request.nb" != '')
+  #set ($nb = $request.nb)
+#end
+#set ($buttonClassNames = 'button')
+#if ("$!request.space" != '' &amp;&amp; $request.space.trim() != '')
+  #set ($space = $request.space)
+  #set ($buttonClassNames = 'btn btn-default float-left')
+#end
+#if (!$request.xpage)
+  {{html clean="false"}}
+    ## Fix parents modal.
+    &lt;div class="modal fade" id="fixParentsModal" role="dialog"&gt;
+      &lt;div class="modal-dialog"&gt;
+        &lt;div class="modal-content"&gt;
+          &lt;div class="modal-header"&gt;
+            &lt;button type="button" class="close" data-dismiss="modal"&gt;&amp;times;&lt;/button&gt;
+            &lt;div class="modal-title"&gt;$services.localization.render('confluence.migrator.parents.fix')&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class="modal-body"&gt;
+          &lt;/div&gt;
+          &lt;div class="modal-footer"&gt;
+            &lt;input type="button" id="fixParentsConfirm" class="btn btn-success" data-dismiss="modal"
+              value="$escapetool.xml($services.localization.render('yes'))"/&gt;
+            &lt;input type="button" class="btn btn-default" data-dismiss="modal"
+              value="$escapetool.xml($services.localization.render('cancel'))"/&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    ## Fix parents form.
+    &lt;form id="fixParentsForm" action="" method="post" class="xform"&gt;
+      &lt;div class="hidden"&gt;
+        &lt;input type="hidden" name="check" value="true"&gt;
+        &lt;input type="hidden" name="form_token" value="$services.csrf.getToken()"&gt;
+        &lt;input type="hidden" name="xredirect" value="$doc.getURL('view', '#step-5')"&gt;
+      &lt;/div&gt;
+      &lt;dl&gt;
+        &lt;dt&gt;
+          &lt;label for="space"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.space'))&lt;/label&gt;
+          &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.space.hint'))&lt;/span&gt;
+        &lt;/dt&gt;
+        &lt;dd&gt;
+          &lt;input type="text" name="space" value="$escapetool.xml($space)" /&gt;
+        &lt;/dd&gt;
+        &lt;dt&gt;
+          &lt;label for="nb"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.pagesnb'))&lt;/label&gt;
+          &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.pagesnb.hint'))&lt;/span&gt;
+        &lt;/dt&gt;
+        &lt;dd&gt;
+          &lt;input type="text" name="nb" value="$escapetool.xml($nb)" size="10" /&gt;
+        &lt;/dd&gt;
+      &lt;/dl&gt;
+      &lt;input value="$services.localization.render('confluence.migrator.parents.checkgo')" class="$buttonClassNames" type="submit" /&gt;
+    &lt;/form&gt;
+
+    ## Fix parents button form.
+    #if ("$!request.space" != '' &amp;&amp; $request.space.trim() != '')
+      &lt;form action="" id="fixParentsButtonForm" class="xform"&gt;
+        &lt;div class="hidden"&gt;
+          &lt;input type="hidden" name="fixParents" value="true" /&gt;
+          &lt;input type="hidden" name="confirm" value="1" /&gt;
+          &lt;input type="hidden" name="form_token" value="$services.csrf.getToken()" /&gt;
+          &lt;input type="hidden" name="xredirect" value="$doc.getURL('view', '#step-5')" /&gt;
+          &lt;input type="hidden" name="space" value="$escapetool.xml($space)" /&gt;
+          &lt;input type="hidden" name="nb" value="$escapetool.xml($nb)" size="10" /&gt;
+        &lt;/div&gt;
+        &lt;input id="fixParents" value="$services.localization.render('confluence.migrator.parents.fixgo')" class="button" type="submit" /&gt;
+      &lt;/form&gt;
+    #end
+  {{/html}}
+#end
+{{/velocity}}
+
+{{groovy}}
+def escapetool = new org.xwiki.velocity.tools.EscapeTool()
+def space = ''
+def activeProfileDoc = ''
+def activeProfileObj = xwiki.getDocument("Confluence.Migrator.Profiles.WebHome").getObject("Confluence.Tools.ActiveMigrationProfileClass")
+if (activeProfileObj != null) {
+  activeProfile = activeProfileObj.getProperty("profile").value
+  if(activeProfile) {
+    activeProfileDoc = xwiki.getDocument(activeProfile);
+    def profileObj = activeProfileDoc.getObject("Confluence.Tools.MigrationProfileClass")
+    space = profileObj.getProperty("space").value
+  }
+}
+def nb = 10
+def fixParents = request.fixParents == 'true'
+def buttonClassNames = 'button '
+if(request.space &amp;&amp; request.space.trim() != '') {
+  space = request.space
+  buttonClassNames = 'btn btn-default float-left'
+}
+if (request.nb)
+  nb = Integer.parseInt(request.nb)
+
+
+  public getNameProposal(name, space, log, newNameList, maxLength) {
+    def splitname = name.replaceAll("/","_").replaceAll("[.]","_").replaceAll(" _ ", "_").replaceAll("[^\\dA-Za-z_ ]"," ").replaceAll('_', " ")replaceAll("\\s+"," ").split(' ')
+    def newname = splitname[0]
+    def scounter = 1
+    while (newname.replaceAll("[0-9_]","")=="" || newname.size()&lt;20) {
+      if (scounter&gt;5)
+        break;
+      if (scounter&gt;=splitname.size())
+        break;
+      if ((newname.size() + splitname[scounter].size()) &gt; maxLength)
+        break;
+      newname += " " + splitname[scounter]
+      scounter++;
+    }
+
+    if (newname.endsWith("_")||newname.endsWith("_"))
+     newname = newname.substring(0, newname.length()-1)
+
+    def count = 1
+    def newname2 = newname;
+    while (newNameList.contains(newname2) || xwiki.exists(space + "." + newname2)) {
+      newname2 = newname + "_" + count;
+      count++;
+      log.info("Duplicate found");
+      duplicates++;
+    }
+    newNameList.add(newname2)
+    return newname2;
+   }
 
 if (request.space) {
-def list = xwiki.search("select doc.fullName, doc.parent from XWikiDocument as doc where doc.parent &lt;&gt; '' and doc.parent is not null and concat('${space}.', doc.parent) not in (select doc2.fullName from XWikiDocument as doc2 where doc.space='${space}') and doc.parent not in (select doc2.fullName from XWikiDocument as doc2 where doc.space='${space}') and doc.space='${space}'", nb, 0)
-def result = "* Nb docs: ${list.size()}\n"
-println "* Nb docs: ${list.size()}"
-for (item in list) {
- def fullname = item[0]
- def parent = item[1]
- result += "* [[$fullname]] $parent\n"
- println "* [[$fullname]] $parent"
-}
-def resultDoc = xwiki.getDocument("Confluence.Tools.CheckParentsResults")
-resultDoc.setContent(result)
-resultDoc.save("Saving check parent results")
-} else {
- println """If the script is too long, the results will be displayed in [[CheckParentsResults]]."""
+  if(request.fixParents == 'true') {
+
+    // Fixing incomplete parents
+    def nbreplace = 0;
+    def list = xwiki.searchDocuments("where doc.parent like '%.%' and doc.space='${space}' and doc.parent not like '${space}.%'", nb, 0)
+    println "Found ${list.size()} documents with incomplete parent references in space ${space}."
+    for (item in list) {
+      def itemdoc = xwiki.getDocument(item)
+      def parent = (itemdoc==null) ? "" : itemdoc.parent
+      if (parent.contains('\\.')) {
+        def fullparent = services.model.serialize(services.model.resolveDocument(parent, "default", itemdoc.documentReference.parent), "local")
+        println "* [[${item}]] ${xwiki.getDocument(item).parent}"
+        if (fullparent!=parent) {
+          println "** replace with parent: ${fullparent}"
+          nbreplace++;
+          if (request.confirm) {
+            itemdoc.setParent(fullparent)
+            itemdoc.save("Confluence importing: fix parent")
+          }
+        }
+      }
+    }
+
+    println ""
+    if(list.size() &gt; 0) {
+      if(!request.xpage)
+        println "Replaced ${nbreplace} parents."
+      else
+        println "Found ${nbreplace} parents to update."
+    }
+
+    // Fixing too long parents
+    duplicates = 0
+    def nbconversions = 0
+    def nbfailed = 0
+    def nbnotneeded = 0
+    def newnamelist = []
+    def log = services.logging.getLogger(doc.fullName)
+    list = xwiki.search("select doc.name, doc.fullName, doc.parent from XWikiDocument as doc where doc.web='${space}' and ((length(doc.parent)&gt;200 and doc.parent not like '${request.space}%') or (length(doc.parent)&gt;200 and doc.parent like '${request.space}%')) order by doc.name", nb, 0)
+    println "Number of too long parents: ${list.size()}"
+    for (item in list) {
+      def name = item[0]
+      def fullName = item[1]
+      def parent = item[2]
+      println "* doc fullname: ${fullName}"
+      println "** parent: ${parent}"
+      def list2 = xwiki.searchDocuments("where doc.web='${space}' and doc.title=?", 0, 0, [ parent.replaceAll("\\\\", "") ])
+      println "** ${list2.size()} ${list2}"
+      if (list2.size()==1) {
+        def realparentname = list2[0]
+        if ((realparentname != parent) &amp;&amp; (realparentname != request.space + "." + parent)) {
+          println "** real parent ${realparentname}"
+          nbconversions++;
+          if (request.confirm) {
+            def itemdoc = xwiki.getDocument(fullName)
+            itemdoc.setParent(realparentname)
+            itemdoc.save("Restoring parent document")
+          }
+        } else {
+          println "** same real parent ${realparentname}"        
+        }
+      } else {
+        def itemparentdoc = xwiki.getDocument(request.space + "." + parent)
+        if (itemparentdoc.isNew()) {
+          println "** could not find parent. failed."
+          if (request.confirm=="2") {
+            def newparentName = getNameProposal(parent, space, log, newnamelist, 30)
+            def newparentDoc = xwiki.getDocument(space + "." + newparentName);
+            def newparentTitle = parent;
+            if (parent.size()&gt;250)
+              newparentTitle = parent.substring(0, 250);
+            newparentDoc.setTitle(newparentTitle)
+            newparentDoc.save("Confluence import missing document")
+            def itemdoc = xwiki.getDocument(fullName)
+            itemdoc.setParent(newparentName)
+            itemdoc.save("New parent document")
+          }
+          nbfailed++;
+        } else {
+          println "** parent already exists. no conversion needed."
+          nbnotneeded++;
+        }
+      }
+    }
+
+    if(request.xpage) {
+      println "Number of too long parents: ${list.size()}"
+      println "Number of conversions to perform: ${nbconversions}"
+    } else {
+      println "Number of too long parents fixed: ${list.size()}"
+      println "Number of conversions fixed: ${nbconversions}"
+      println "Number of conversions skipped: ${nbnotneeded}"
+      println "Number of conversions failed: ${nbfailed}"
+    }
+  } else {
+    // Searching for invalid parents
+    def list = xwiki.search("select doc.fullName, doc.parent from XWikiDocument as doc where doc.parent &lt;&gt; '' and doc.parent is not null and concat('${space}.', doc.parent) not in (select doc2.fullName from XWikiDocument as doc2 where doc.space='${space}') and doc.parent not in (select doc2.fullName from XWikiDocument as doc2 where doc.space='${space}') and doc.space='${space}'", nb, 0)
+    def result = "* Nb docs: ${list.size()}\n"
+    println "* Nb docs: ${list.size()}"
+    for (item in list) {
+      def fullname = item[0]
+      def parent = item[1]
+      result += "* [[$fullname]] $parent\n"
+      println "* [[$fullname]] with parent $parent"
+    }
+    def activeProfileSpaceReference = services.model.resolveSpace(activeProfileDoc.fullName)
+    def resultDocRef = services.model.createDocumentReference("CheckParentsResults", activeProfileSpaceReference)
+    def resultDoc = xwiki.getDocument(resultDocRef)
+    resultDoc.setContent(result)
+    resultDoc.save("Saving check parent results")
+    if(request.xpage != 'plain')
+      println """If the script is too long, the results will be displayed in [[${resultDoc}]]."""
+  }
 }
 {{/groovy}}</content>
+  <object>
+    <name>Confluence.Tools.CheckParents</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>9c09e4c5-e8ab-4435-8485-2d6fb29311ec</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require.config({
+  paths: {
+    JobRunner: "$!services.webjars.url('org.xwiki.platform:xwiki-platform-job-webjar', 'jobRunner.min')"
+  }
+});
+
+require(['jquery', 'xwiki-events-bridge', 'JobRunner'], function($, xev, JobRunner) {
+  'use strict';
+  var init = function() {
+    var spaceInput = $('input[name=space]');
+    var fixParentsButton = $('#fixParents');
+    var fixParentsModal = $('#fixParentsModal');
+    if(spaceInput &amp;&amp; fixParentsButton &amp;&amp; fixParentsModal) {
+      fixParentsButton.click(function (e) {
+        e.preventDefault();
+        form = $('#fixParentsForm');
+        url = new XWiki.Document('CheckParents', 'Confluence.Tools').getURL('get', 'xpage=plain'),
+        $.ajax(url, {
+          'data': {
+            'space': spaceInput.val(),
+            'nb': $("input[name=nb]").val(),
+            'fixParents' : true
+          },
+          'method': 'POST',
+          'data-type': 'json'
+        }).done(function(data) {
+          fixParentsModal.find('.modal-body').html(data);
+          $('#fixParentsModal').modal();
+        });
+        $('#fixParentsConfirm').click(function(e) {
+          form.submit();
+        });
+      });
+    }
+  }
+  XWiki.domIsLoaded &amp;&amp; init();
+})</code>
+    </property>
+    <property>
+      <name>Check parents</name>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
 </xwikidoc>

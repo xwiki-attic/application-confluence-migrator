@@ -37,6 +37,7 @@
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
   <content>confluence.migrator.application=Confluence Migrator
+
 ### Wizzard steps
 confluence.migrator.step.prerequisites.label=Step 1
 confluence.migrator.step.prerequisites.description=Prerequisites
@@ -46,6 +47,9 @@ confluence.migrator.step.confluenceexport.label=Step 3
 confluence.migrator.step.confluenceexport.description=Confluence export
 confluence.migrator.step.execution.label=Step 4
 confluence.migrator.step.execution.description=XWiki import
+confluence.migrator.step.postimportfixes.label=Step 5
+confluence.migrator.step.postimportfixes.description=Post import fixes
+
 ### Profile
 confluence.migrator.profile=Profile
 confluence.migrator.profile.edit=({0}edit{1})
@@ -77,9 +81,11 @@ confluence.migrator.profile.update=Updating migration profile.
 confluence.migrator.profile.updatesuccess=The migration profile has been updated.
 confluence.migrator.profile.reset=Resetting migration profile.
 confluence.migrator.profile.resetsuccess=The migration has been reset successfully.
+
 ### Prerequisites
 confluence.migrator.prerequisites.title=Prerequisites
 confluence.migrator.prerequisites.description=At this step the minimal requirements for the migration are being listed.
+
 ### Space analysis
 confluence.migrator.spaceanalysis.title=Confluence space analysis
 confluence.migrator.spaceanalysis.description=This script has the objective of analysing a remote Confluence space and detect pages that would cause importing problems because of the page length.
@@ -159,7 +165,16 @@ confluence.migrator.input.source=Source
 confluence.migrator.input.source.description=The source to load the Confluence pages from.
 confluence.migrator.input.source.supportedformats=Supported formats are &lt;strong&gt;file:&amp;lt;path on server&amp;gt;&lt;/strong&gt; (e.g. &lt;strong&gt;file:/home/myuser/myfile.zip&lt;/strong&gt;) and &lt;strong&gt;url:&amp;lt;url&amp;gt;&lt;/strong&gt; (e.g. &lt;strong&gt;http://myserver/some/file/to/myfile.zip&lt;/strong&gt;).
 confluence.migrator.advanced=Advanced setup
-confluence.migrator.import=Import</content>
+confluence.migrator.import=Import
+
+## Post import fixes
+confluence.migrator.parents.space=Space
+confluence.migrator.parents.space.hint=The name of the space to check for invalid parents.
+confluence.migrator.parents.pagesnb=Number of pages to check
+confluence.migrator.parents.pagesnb.hint=The number of pages in the above space to check for invalid parents.
+confluence.migrator.parents.checkgo=Check parents
+confluence.migrator.parents.fixgo=Fix invalid parents
+confluence.migrator.parents.fix=Fix invalid parents</content>
   <object>
     <name>Confluence.Migrator.Code.Translations</name>
     <number>0</number>
