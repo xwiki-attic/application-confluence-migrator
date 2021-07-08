@@ -67,7 +67,7 @@
     $services.localization.render('confluence.migrator.profile.list')
     (% class="table-striped table-hover" %)(((
       #foreach ($profile in $migratorProfileList)
-        |[[$profile.get(0)&gt;&gt;$profile.get(1)]]|(% class="buttonwrapper" %)[[$services.localization.render("confluence.migrator.start.migration")&gt;&gt;$migratorHomePage||queryString="p=${profile.get(2)}")]](%%)
+        |[[$profile.get(0)&gt;&gt;$profile.get(1)]]|(% class="buttonwrapper" %)[[$services.localization.render("confluence.migrator.start.migration")&gt;&gt;$migratorHomePage||queryString="p=$profile.get(1)")]](%%)
       #end
     )))
     (% class="clearfix" %)((()))
@@ -81,54 +81,7 @@
   ## Add an "OR" to underline the optional choice (select existing profile, OR create a new one)
   #set ($createMessageKey = 'orcreate')
 #end
-$services.localization.render("confluence.migrator.profile.${createMessageKey}", [$escapetool.xml($xwiki.getURL("Confluence.Migrator.Profiles.${profileID}", 'edit', "template=${migratorProfileTemplateName}"))])
-
+#set ($profileUrl = $xwiki.getURL("Confluence.Migrator.Profiles.${profileID}.WebHome", 'edit', "template=$migratorProfileTemplateName"))
+$services.localization.render("confluence.migrator.profile.${createMessageKey}", [$profileUrl])
 {{/velocity}}</content>
-  <object>
-    <name>Confluence.Tools.Profiles</name>
-    <number>0</number>
-    <className>Confluence.Tools.ActiveMigrationProfileClass</className>
-    <guid>82d7d800-84bf-460c-801f-79c894d69590</guid>
-    <class>
-      <name>Confluence.Tools.ActiveMigrationProfileClass</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <profile>
-        <cache>0</cache>
-        <classname/>
-        <customDisplay/>
-        <defaultValue/>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <freeText/>
-        <hint/>
-        <idField/>
-        <largeStorage>1</largeStorage>
-        <multiSelect>0</multiSelect>
-        <name>profile</name>
-        <number>1</number>
-        <picker>1</picker>
-        <prettyName>profile</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators/>
-        <size>1</size>
-        <sort/>
-        <sql/>
-        <unmodifiable>0</unmodifiable>
-        <validationMessage/>
-        <validationRegExp/>
-        <valueField/>
-        <classType>com.xpn.xwiki.objects.classes.PageClass</classType>
-      </profile>
-    </class>
-    <property>
-      <profile/>
-    </property>
-  </object>
 </xwikidoc>

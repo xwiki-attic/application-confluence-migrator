@@ -49,7 +49,7 @@
     #if("$!request.p" != '')
       ## Activate migration profile
       #set ($updateActiveProfile = true)
-      #set ($activeProfile = "Confluence.Migrator.Profiles.${request.p}")
+      #set ($activeProfile = $request.p)
       #set ($activeProfileActionKey = 'update')
     #end
   #elseif("$!request.r" == '1')
@@ -59,8 +59,9 @@
     #set ($activeProfileActionKey = 'reset')
   #end
   #if ($updateActiveProfile)
-    $migratorProfilesObj.set('profile', $activeProfile)
-    #set ($discard = $xwiki.getXWiki().saveDocument($migratorProfilesHomeDoc.document, $services.localization.render("confluence.migrator.profile.${activeProfileActionKey}"), $xcontext.context))
+    #set ($discard = $migratorProfilesObj.set('profile', $activeProfile))
+    #set ($discard = $xwiki.getXWiki().saveDocument($migratorProfilesHomeDoc.document,
+      $services.localization.render("confluence.migrator.profile.${activeProfileActionKey}"), $xcontext.context))
 
     {{info}}$services.localization.render("confluence.migrator.profile.${activeProfileActionKey}success"){{/info}}
 
