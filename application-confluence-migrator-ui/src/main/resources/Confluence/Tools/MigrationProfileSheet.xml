@@ -116,6 +116,10 @@
         #end
       #end
       $doc.content
+
+      $services.localization.render('confluence.migrator.profile.reports')
+
+      {{children/}}
     #end
   #end
 {{/velocity}}</content>

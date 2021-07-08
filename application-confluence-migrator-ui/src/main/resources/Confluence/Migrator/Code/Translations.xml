@@ -81,6 +81,7 @@ confluence.migrator.profile.update=Updating migration profile.
 confluence.migrator.profile.updatesuccess=The migration profile has been updated.
 confluence.migrator.profile.reset=Resetting migration profile.
 confluence.migrator.profile.resetsuccess=The migration has been reset successfully.
+confluence.migrator.profile.reports=Reports
 
 ### Prerequisites
 confluence.migrator.prerequisites.title=Prerequisites
