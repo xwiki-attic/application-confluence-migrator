@@ -35,7 +35,7 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content>{{job id="confluence/longpagename" start="{{velocity~}~}$!{request.confirm}{{/velocity~}~}"}}
 {{groovy}}
   import org.xwiki.logging.LogLevel;
@@ -157,6 +157,7 @@
 {{/job}}
 
 {{velocity}}
+= $services.localization.render('confluence.migrator.postImportFixes.longNamesHandling') =
 #if ("$request.confirm" != 'true')
  #set($space = "")
  #if($request.space)
@@ -167,12 +168,23 @@
   #set($nb = $request.nb)
  #end
 {{html clean=false}}
-&lt;form action=""&gt;
-Space name: &lt;input type="text" name="space" value="${escapetool.xml($space)}" size="60" /&gt;&lt;br /&gt;
-Number of docs: &lt;input type="text" name="nb" value="${escapetool.xml($nb)}" size="10" /&gt;&lt;br /&gt;
-&lt;input name="testRun" type="checkbox" value="1" checked /&gt; Test run only
-&lt;input name="confirm" type="hidden" value="true" /&gt;
-&lt;br /&gt;
+&lt;form action="" method="post" class="xform"&gt;
+&lt;dl&gt;
+  &lt;dt&gt;
+    &lt;label for="space"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.space'))&lt;/label&gt;
+    &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.space.hint'))&lt;/span&gt;
+  &lt;/dt&gt;
+  &lt;dd&gt;
+    &lt;input type="text" name="space" value="$escapetool.xml($space)" /&gt;
+  &lt;/dd&gt;
+  &lt;dt&gt;
+    &lt;label for="nb"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.pagesnb'))&lt;/label&gt;
+    &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.pagesnb.hint'))&lt;/span&gt;
+  &lt;/dt&gt;
+  &lt;dd&gt;
+    &lt;input type="text" name="nb" value="$escapetool.xml($nb)" size="10" /&gt;
+  &lt;/dd&gt;
+&lt;/dl&gt;
 &lt;input name="submit" type="submit" value="Go" class="button" /&gt;
 &lt;/form&gt;
 {{/html}}

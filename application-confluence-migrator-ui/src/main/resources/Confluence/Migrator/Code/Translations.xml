@@ -175,7 +175,11 @@ confluence.migrator.parents.pagesnb=Number of pages to check
 confluence.migrator.parents.pagesnb.hint=The number of pages in the above space to check for invalid parents.
 confluence.migrator.parents.checkgo=Check parents
 confluence.migrator.parents.fixgo=Fix invalid parents
-confluence.migrator.parents.fix=Fix invalid parents</content>
+confluence.migrator.parents.fix=Fix invalid parents
+confluence.migrator.postImportFixes.checkParents=Verify pages without parents
+confluence.migrator.postImportFixes.checkInvalidParents=Verify invalid parents (containing dot in the name)
+confluence.migrator.postImportFixes.detectLongPages=Detect too long page names
+confluence.migrator.postImportFixes.longNamesHandling=Fix documents with too long page names</content>
   <object>
     <name>Confluence.Migrator.Code.Translations</name>
     <number>0</number>

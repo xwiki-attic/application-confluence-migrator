@@ -36,5 +36,16 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference="Confluence.Tools.CheckParents"/}}</content>
+  <content>{{include reference="Confluence.Tools.CheckParents"/}}
+
+{{include reference="Confluence.Tools.CheckInvalidParents"/}}
+
+{{velocity}}
+## The document reference size limit was increased from 255 to 768 (the maximum supported by MySQL) in XWiki 13.2.
+#if ($services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-model').id.version.compareTo('13.2') &lt;= 0)
+{{include reference="Confluence.Tools.DetectPageNameTooLong"/}}
+
+{{include reference="Confluence.Tools.LongPageNames"/}}
+#end
+{{/velocity}}</content>
 </xwikidoc>

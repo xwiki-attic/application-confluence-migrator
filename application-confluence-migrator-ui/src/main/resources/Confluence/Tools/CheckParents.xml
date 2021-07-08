@@ -36,102 +36,22 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference="Confluence.Tools.Macros" /}}
-
-{{include reference = "Confluence.Tools.Parameters" /}}
-
-{{velocity}}
-#set ($discard = $xwiki.ssx.use('Confluence.Tools.CheckParents'))
-#set ($discard = $xwiki.jsx.use('Confluence.Tools.CheckParents'))
-#set ($space = $activeProfileDoc.getValue('space'))
-#set ($nb = 10)
-#if ("$!request.nb" != '')
-  #set ($nb = $request.nb)
-#end
-#set ($buttonClassNames = 'button')
-#if ("$!request.space" != '' &amp;&amp; $request.space.trim() != '')
-  #set ($space = $request.space)
-  #set ($buttonClassNames = 'btn btn-default float-left')
-#end
-#if (!$request.xpage)
-  {{html clean="false"}}
-    ## Fix parents modal.
-    &lt;div class="modal fade" id="fixParentsModal" role="dialog"&gt;
-      &lt;div class="modal-dialog"&gt;
-        &lt;div class="modal-content"&gt;
-          &lt;div class="modal-header"&gt;
-            &lt;button type="button" class="close" data-dismiss="modal"&gt;&amp;times;&lt;/button&gt;
-            &lt;div class="modal-title"&gt;$services.localization.render('confluence.migrator.parents.fix')&lt;/div&gt;
-          &lt;/div&gt;
-          &lt;div class="modal-body"&gt;
-          &lt;/div&gt;
-          &lt;div class="modal-footer"&gt;
-            &lt;input type="button" id="fixParentsConfirm" class="btn btn-success" data-dismiss="modal"
-              value="$escapetool.xml($services.localization.render('yes'))"/&gt;
-            &lt;input type="button" class="btn btn-default" data-dismiss="modal"
-              value="$escapetool.xml($services.localization.render('cancel'))"/&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-
-    ## Fix parents form.
-    &lt;form id="fixParentsForm" action="" method="post" class="xform"&gt;
-      &lt;div class="hidden"&gt;
-        &lt;input type="hidden" name="check" value="true"&gt;
-        &lt;input type="hidden" name="form_token" value="$services.csrf.getToken()"&gt;
-        &lt;input type="hidden" name="xredirect" value="$doc.getURL('view', '#step-5')"&gt;
-      &lt;/div&gt;
-      &lt;dl&gt;
-        &lt;dt&gt;
-          &lt;label for="space"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.space'))&lt;/label&gt;
-          &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.space.hint'))&lt;/span&gt;
-        &lt;/dt&gt;
-        &lt;dd&gt;
-          &lt;input type="text" name="space" value="$escapetool.xml($space)" /&gt;
-        &lt;/dd&gt;
-        &lt;dt&gt;
-          &lt;label for="nb"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.pagesnb'))&lt;/label&gt;
-          &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.pagesnb.hint'))&lt;/span&gt;
-        &lt;/dt&gt;
-        &lt;dd&gt;
-          &lt;input type="text" name="nb" value="$escapetool.xml($nb)" size="10" /&gt;
-        &lt;/dd&gt;
-      &lt;/dl&gt;
-      &lt;input value="$services.localization.render('confluence.migrator.parents.checkgo')" class="$buttonClassNames" type="submit" /&gt;
-    &lt;/form&gt;
-
-    ## Fix parents button form.
-    #if ("$!request.space" != '' &amp;&amp; $request.space.trim() != '')
-      &lt;form action="" id="fixParentsButtonForm" class="xform"&gt;
-        &lt;div class="hidden"&gt;
-          &lt;input type="hidden" name="fixParents" value="true" /&gt;
-          &lt;input type="hidden" name="confirm" value="1" /&gt;
-          &lt;input type="hidden" name="form_token" value="$services.csrf.getToken()" /&gt;
-          &lt;input type="hidden" name="xredirect" value="$doc.getURL('view', '#step-5')" /&gt;
-          &lt;input type="hidden" name="space" value="$escapetool.xml($space)" /&gt;
-          &lt;input type="hidden" name="nb" value="$escapetool.xml($nb)" size="10" /&gt;
-        &lt;/div&gt;
-        &lt;input id="fixParents" value="$services.localization.render('confluence.migrator.parents.fixgo')" class="button" type="submit" /&gt;
-      &lt;/form&gt;
-    #end
-  {{/html}}
-#end
-{{/velocity}}
-
-{{groovy}}
+  <content>{{groovy}}
+println """= ${services.localization.render('confluence.migrator.postImportFixes.checkParents')} ="""
 def escapetool = new org.xwiki.velocity.tools.EscapeTool()
-def space = ''
-def activeProfileDoc = ''
-def activeProfileObj = xwiki.getDocument("Confluence.Migrator.Profiles.WebHome").getObject("Confluence.Tools.ActiveMigrationProfileClass")
+
+def space = null
+def activeProfileDoc = null
+def activeProfileObj = xwiki.getDocument('Confluence.Migrator.Profiles.WebHome').getObject('Confluence.Tools.ActiveMigrationProfileClass')
 if (activeProfileObj != null) {
-  activeProfile = activeProfileObj.getProperty("profile").value
+  def activeProfile = activeProfileObj.getProperty('profile').value
   if(activeProfile) {
     activeProfileDoc = xwiki.getDocument(activeProfile);
-    def profileObj = activeProfileDoc.getObject("Confluence.Tools.MigrationProfileClass")
-    space = profileObj.getProperty("space").value
+    def profileObj = xwiki.getDocument(activeProfile).getObject('Confluence.Tools.MigrationProfileClass')
+    space = profileObj.getProperty('space').value
   }
 }
+
 def nb = 10
 def fixParents = request.fixParents == 'true'
 def buttonClassNames = 'button '
@@ -142,6 +62,54 @@ if(request.space &amp;&amp; request.space.trim() != '') {
 if (request.nb)
   nb = Integer.parseInt(request.nb)
 
+if(!request.xpage) {
+println """
+{{html clean=false}}
+  &lt;form action="" method="post" class="xform"&gt;
+    &lt;div class="hidden"&gt;
+      &lt;input type="hidden" name="check" value="true"&gt;
+      &lt;input type="hidden" name="form_token" value="${services.csrf.getToken()}"&gt;
+      &lt;input type="hidden" name="xredirect" value="${doc.getURL('view', '#step-5')}"&gt;
+    &lt;/div&gt;
+    &lt;dl&gt;
+      &lt;dt&gt;
+        &lt;label for="space"&gt;${escapetool.xml(services.localization.render("confluence.migrator.parents.space"))}&lt;/label&gt;
+        &lt;span class="xHint"&gt;${escapetool.xml(services.localization.render("confluence.migrator.parents.space.hint"))}&lt;/span&gt;
+      &lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;input type="text" name="space" value="${escapetool.xml(space)}" /&gt;
+      &lt;/dd&gt;
+      &lt;dt&gt;
+        &lt;label for="nb"&gt;${escapetool.xml(services.localization.render("confluence.migrator.parents.pagesnb"))}&lt;/label&gt;
+        &lt;span class="xHint"&gt;${escapetool.xml(services.localization.render("confluence.migrator.parents.pagesnb.hint"))}&lt;/span&gt;
+      &lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;input type="text" name="nb" value="${escapetool.xml(nb)}" size="10" /&gt;
+      &lt;/dd&gt;
+    &lt;/dl&gt;
+    &lt;input value="${services.localization.render('confluence.migrator.parents.checkgo')}" class="${buttonClassNames}" type="submit" /&gt;
+  &lt;/form&gt;
+"""
+
+if(request.space &amp;&amp; request.space.trim() != '')
+  println """
+  &lt;form action="" method="post" class="xform"&gt;
+    &lt;div class="hidden"&gt;
+      &lt;input type="hidden" name="fixParents" value="true"&gt;
+      &lt;input type="hidden" name="confirm" value="1"&gt;
+      &lt;input type="hidden" name="form_token" value="${services.csrf.getToken()}"&gt;
+      &lt;input type="hidden" name="xredirect" value="${doc.getURL('view', '#step-5')}"&gt;
+      &lt;input type="hidden" name="space" value="${escapetool.xml(space)}" /&gt;
+      &lt;input type="hidden" name="nb" value="${escapetool.xml(nb)}" size="10" /&gt;
+    &lt;/div&gt;
+    &lt;input id="fix-parents" value="${services.localization.render('confluence.migrator.parents.fixgo')}" class="button" type="submit" /&gt;
+  &lt;/form&gt;
+"""
+
+println """
+{{/html}}
+"""
+}
 
   public getNameProposal(name, space, log, newNameList, maxLength) {
     def splitname = name.replaceAll("/","_").replaceAll("[.]","_").replaceAll(" _ ", "_").replaceAll("[^\\dA-Za-z_ ]"," ").replaceAll('_', " ")replaceAll("\\s+"," ").split(' ')
@@ -279,7 +247,8 @@ if (request.space) {
       result += "* [[$fullname]] $parent\n"
       println "* [[$fullname]] with parent $parent"
     }
-    def activeProfileSpaceReference = services.model.resolveSpace(activeProfileDoc.fullName)
+
+    def activeProfileSpaceReference = services.model.resolveSpace(activeProfileDoc.space)
     def resultDocRef = services.model.createDocumentReference("CheckParentsResults", activeProfileSpaceReference)
     def resultDoc = xwiki.getDocument(resultDocRef)
     resultDoc.setContent(result)
@@ -289,139 +258,4 @@ if (request.space) {
   }
 }
 {{/groovy}}</content>
-  <object>
-    <name>Confluence.Tools.CheckParents</name>
-    <number>0</number>
-    <className>XWiki.JavaScriptExtension</className>
-    <guid>9c09e4c5-e8ab-4435-8485-2d6fb29311ec</guid>
-    <class>
-      <name>XWiki.JavaScriptExtension</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <cache>
-        <cache>0</cache>
-        <defaultValue>long</defaultValue>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <freeText>forbidden</freeText>
-        <largeStorage>0</largeStorage>
-        <multiSelect>0</multiSelect>
-        <name>cache</name>
-        <number>5</number>
-        <prettyName>Caching policy</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>long|short|default|forbid</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </cache>
-      <code>
-        <contenttype>PureText</contenttype>
-        <disabled>0</disabled>
-        <editor>PureText</editor>
-        <name>code</name>
-        <number>2</number>
-        <prettyName>Code</prettyName>
-        <rows>20</rows>
-        <size>50</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </code>
-      <name>
-        <disabled>0</disabled>
-        <name>name</name>
-        <number>1</number>
-        <prettyName>Name</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
-      <parse>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>yesno</displayType>
-        <name>parse</name>
-        <number>4</number>
-        <prettyName>Parse content</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </parse>
-      <use>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <freeText>forbidden</freeText>
-        <largeStorage>0</largeStorage>
-        <multiSelect>0</multiSelect>
-        <name>use</name>
-        <number>3</number>
-        <prettyName>Use this extension</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>currentPage|onDemand|always</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </use>
-    </class>
-    <property>
-      <cache>long</cache>
-    </property>
-    <property>
-      <code>require.config({
-  paths: {
-    JobRunner: "$!services.webjars.url('org.xwiki.platform:xwiki-platform-job-webjar', 'jobRunner.min')"
-  }
-});
-
-require(['jquery', 'xwiki-events-bridge', 'JobRunner'], function($, xev, JobRunner) {
-  'use strict';
-  var init = function() {
-    var spaceInput = $('input[name=space]');
-    var fixParentsButton = $('#fixParents');
-    var fixParentsModal = $('#fixParentsModal');
-    if(spaceInput &amp;&amp; fixParentsButton &amp;&amp; fixParentsModal) {
-      fixParentsButton.click(function (e) {
-        e.preventDefault();
-        form = $('#fixParentsForm');
-        url = new XWiki.Document('CheckParents', 'Confluence.Tools').getURL('get', 'xpage=plain'),
-        $.ajax(url, {
-          'data': {
-            'space': spaceInput.val(),
-            'nb': $("input[name=nb]").val(),
-            'fixParents' : true
-          },
-          'method': 'POST',
-          'data-type': 'json'
-        }).done(function(data) {
-          fixParentsModal.find('.modal-body').html(data);
-          $('#fixParentsModal').modal();
-        });
-        $('#fixParentsConfirm').click(function(e) {
-          form.submit();
-        });
-      });
-    }
-  }
-  XWiki.domIsLoaded &amp;&amp; init();
-})</code>
-    </property>
-    <property>
-      <name>Check parents</name>
-    </property>
-    <property>
-      <parse>1</parse>
-    </property>
-    <property>
-      <use>onDemand</use>
-    </property>
-  </object>
 </xwikidoc>
