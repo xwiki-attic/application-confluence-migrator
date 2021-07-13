@@ -35,10 +35,23 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content>{{groovy}}
+println """= ${services.localization.render('confluence.migrator.postImportFixes.checkInvalidParents')} ="""
 def escapetool = new org.xwiki.velocity.tools.EscapeTool()
-def space = "";
+
+def space = null
+def activeProfileDoc = null
+def activeProfileObj = xwiki.getDocument('Confluence.Migrator.Profiles.WebHome').getObject('Confluence.Tools.ActiveMigrationProfileClass')
+if (activeProfileObj != null) {
+  def activeProfile = activeProfileObj.getProperty('profile').value
+  if(activeProfile) {
+    activeProfileDoc = xwiki.getDocument(activeProfile);
+    def profileObj = xwiki.getDocument(activeProfile).getObject('Confluence.Tools.MigrationProfileClass')
+    space = profileObj.getProperty('space').value
+  }
+}
+
 def nb = 10
 if (request.space)
  space = request.space
@@ -47,10 +60,24 @@ if (request.nb)
 
 println """
 {{html clean=false}}
-&lt;form action=""&gt;
-Space name: &lt;input type="text" name="space" value="${escapetool.xml(space)}" size="60" /&gt;&lt;br /&gt;
-Nb: &lt;input type="text" name="nb" value="${escapetool.xml(nb)}" size="10" /&gt;&lt;br /&gt;
-&lt;input name="submit" type="submit" value="Go" class="button" /&gt;
+&lt;form action="" method="post" class="xform"&gt;
+  &lt;dl&gt;
+    &lt;dt&gt;
+      &lt;label for="space"&gt;${escapetool.xml(services.localization.render("confluence.migrator.parents.space"))}&lt;/label&gt;
+      &lt;span class="xHint"&gt;${escapetool.xml(services.localization.render("confluence.migrator.parents.space.hint"))}&lt;/span&gt;
+    &lt;/dt&gt;
+    &lt;dd&gt;
+      &lt;input type="text" name="space" value="${escapetool.xml(space)}" /&gt;
+    &lt;/dd&gt;
+    &lt;dt&gt;
+      &lt;label for="nb"&gt;${escapetool.xml(services.localization.render("confluence.migrator.parents.pagesnb"))}&lt;/label&gt;
+      &lt;span class="xHint"&gt;${escapetool.xml(services.localization.render("confluence.migrator.parents.pagesnb.hint"))}&lt;/span&gt;
+    &lt;/dt&gt;
+    &lt;dd&gt;
+      &lt;input type="text" name="nb" value="${escapetool.xml(nb)}" size="10" /&gt;
+    &lt;/dd&gt;
+  &lt;/dl&gt;
+  &lt;input name="submit" type="submit" value="Go" class="button" /&gt;
 &lt;/form&gt;
 {{/html}}
 """

@@ -159,9 +159,18 @@
 {{velocity}}
 = $services.localization.render('confluence.migrator.postImportFixes.longNamesHandling') =
 #if ("$request.confirm" != 'true')
- #set($space = "")
- #if($request.space)
-  #set($space = $request.space)
+  #set ($space = '')
+  #set ($activeProfileObj = $xwiki.getDocument('Confluence.Migrator.Profiles.WebHome').getObject('Confluence.Tools.ActiveMigrationProfileClass'))
+  #if ($activeProfileObj)
+    #set ($activeProfile = $activeProfileObj.getValue('profile'))
+    #if ($activeProfile)
+      #set ($activeProfileDoc = $xwiki.getDocument($activeProfile))
+      #set ($profileObj = $xwiki.getDocument($activeProfile).getObject('Confluence.Tools.MigrationProfileClass'))
+      #set ($space = $profileObj.getValue('space'))
+    #end
+ #end
+ #if ($request.space)
+  #set ($space = $request.space)
  #end
  #set($nb = "100")
  #if($request.nb)
