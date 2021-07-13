@@ -48,7 +48,8 @@
  2 : {'id' : 'spaceanalysis', 'reference' : 'Confluence.Tools.ConfluenceSpaceAnalysis'},
  3 : {'id' : 'confluenceexport', 'reference' : 'Confluence.Tools.ConfluenceExport'},
  4 : {'id' : 'execution', 'reference' : 'Confluence.Tools.Filter'},
- 5 : {'id' : 'postimportfixes', 'reference' : 'Confluence.Tools.PostImportFixes'}
+ 5 : {'id' : 'postimportfixes', 'reference' : 'Confluence.Tools.PostImportFixes'},
+ 6 : {'id' : 'nestedmigration', 'reference' : 'NestedPagesMigration.WebHome'}
 })
 #set ($hiddenMigrationProfileProperties = ['activeStep', 'stepsTaken'])
 #getActiveProfile($activeProfile $activeStep $stepsTaken)

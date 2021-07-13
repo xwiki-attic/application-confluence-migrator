@@ -49,6 +49,8 @@ confluence.migrator.step.execution.label=Step 4
 confluence.migrator.step.execution.description=XWiki import
 confluence.migrator.step.postimportfixes.label=Step 5
 confluence.migrator.step.postimportfixes.description=Post import fixes
+confluence.migrator.step.nestedmigration.label=Step 6
+confluence.migrator.step.nestedmigration.description=Nested pages
 
 ### Profile
 confluence.migrator.profile=Profile
