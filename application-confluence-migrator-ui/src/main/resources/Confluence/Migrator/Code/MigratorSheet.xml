@@ -88,6 +88,9 @@
     (% class="hidden" %)(((
       (% id="active-profile-id" %)(((${escapetool.xml($activeProfile)})))
     )))
+    {{info}}
+      $services.localization.render('confluence.migrator.intro', ['[[', '&gt;&gt;url:https://store.xwiki.com/xwiki/bin/view/Extension/ConfluenceMigratorApplication/||target="_blank"]]'])
+    {{/info}}
     (% class="active-profile-description" %)(((
       #if(!$isActiveMigrationProfile)
 
