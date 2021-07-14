@@ -59,9 +59,9 @@ confluence.migrator.profile.confluenceSpaceURL=Confluence Space URL
 confluence.migrator.profile.title=Title
 confluence.migrator.profile.titlehint=The title of the profile
 Confluence.Tools.MigrationProfileClass_0_username=Username
-Confluence.Tools.MigrationProfileClass_0_usernamehint=Your Atlassian account username.
+Confluence.Tools.MigrationProfileClass_0_usernamehint=Your Atlassian user ID. On Confluence Cloud, this should be an email. On Confluence Data Center or Server, this should be an ID.
 Confluence.Tools.MigrationProfileClass_0_token=Token
-Confluence.Tools.MigrationProfileClass_0_tokenhint=The &lt;a href="https://id.atlassian.com/manage-profile/security/api-tokens" title="API token"&gt;API token&lt;/a&gt; for your Atlassian account that will be used to enable the analysis of your Confluence data.
+Confluence.Tools.MigrationProfileClass_0_tokenhint=On Confluence Cloud or Data Center it is an &lt;a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" title="API token"&gt;Api Token&lt;/a&gt; for your Atlassian Account. For Confluence Server it should be your password.
 Confluence.Tools.MigrationProfileClass_0_url=URL
 Confluence.Tools.MigrationProfileClass_0_urlhint=The URL of the Confluence instance (ex: https://my.atlassian.net/).
 Confluence.Tools.MigrationProfileClass_0_space=Space
