@@ -63,7 +63,7 @@ Confluence.Tools.MigrationProfileClass_0_usernamehint=Your Atlassian user ID. On
 Confluence.Tools.MigrationProfileClass_0_token=Token
 Confluence.Tools.MigrationProfileClass_0_tokenhint=On Confluence Cloud or Data Center it is an &lt;a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" title="API token"&gt;Api Token&lt;/a&gt; for your Atlassian Account. For Confluence Server it should be your password.
 Confluence.Tools.MigrationProfileClass_0_url=URL
-Confluence.Tools.MigrationProfileClass_0_urlhint=The URL of the Confluence instance (ex: https://my.atlassian.net/).
+Confluence.Tools.MigrationProfileClass_0_urlhint=The URL of the Confluence instance (ex: https://my.atlassian.net).
 Confluence.Tools.MigrationProfileClass_0_space=Space
 Confluence.Tools.MigrationProfileClass_0_spacehint=The space that will be imported in XWiki.
 confluence.migrator.intro=Welcome to the Confluence Migrator. This tool will help you import the content from your Confluence instance to XWiki. For more information about this tool and pre-requisite about the Confluence Import please visit the {0}Confluence Migrator documentation{1}.
