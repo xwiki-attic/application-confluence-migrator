@@ -1,0 +1,2 @@
+com.xwiki.confluencemigrator.script.ConfluenceMigratorScriptService
+com.xwiki.confluencemigrator.internal.DefaultConfluenceMigratorManager

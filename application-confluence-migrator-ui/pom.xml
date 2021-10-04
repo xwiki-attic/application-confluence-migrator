@@ -46,6 +46,11 @@
   </properties>
   <dependencies>
     <dependency>
+      <groupId>com.xwiki.confluence</groupId>
+      <artifactId>application-confluence-migrator-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <!-- This is a paid application. -->
       <groupId>com.xwiki.licensing</groupId>
       <artifactId>application-licensing-licensor-api</artifactId>

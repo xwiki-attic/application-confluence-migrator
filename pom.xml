@@ -153,6 +153,7 @@
     </dependencies>
   </dependencyManagement>
   <modules>
+    <module>application-confluence-migrator-api</module>
     <module>application-confluence-migrator-ui</module>
   </modules>
   <!-- Even though this repository is already declared in the parent POM, we still explicitly redeclare it for
