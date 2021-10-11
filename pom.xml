@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.parent</groupId>
     <artifactId>xwikisas-parent-platform</artifactId>
-    <version>10.11</version>
+    <version>11.10</version>
   </parent>
   <groupId>com.xwiki.confluence</groupId>
   <artifactId>application-confluence-migrator</artifactId>
@@ -44,13 +44,12 @@
     <tag>HEAD</tag>
   </scm>
   <properties>
-    <licensing.version>1.18</licensing.version>
-    <confluence.xml.version>9.13</confluence.xml.version>
+    <licensing.version>1.19</licensing.version>
+    <confluence.xml.version>9.14</confluence.xml.version>
     <nestedpages.migrator.version>0.8</nestedpages.migrator.version>
     <pro.macros.version>1.1.1</pro.macros.version>
     <smart.wizard.version>5.1.1</smart.wizard.version>
     <macro.job.version>1.5.1</macro.job.version>
-    <commons.lang3.version>3.11</commons.lang3.version>
     <listeneradmin.version>1.0.1</listeneradmin.version>
   </properties>
    <dependencyManagement>

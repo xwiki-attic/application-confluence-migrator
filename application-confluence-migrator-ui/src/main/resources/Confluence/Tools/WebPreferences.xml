@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="Confluence.Tools.WebPreferences" locale="">
+<xwikidoc version="1.3" reference="Confluence.Tools.WebPreferences" locale="">
   <web>Confluence.Tools</web>
   <name>WebPreferences</name>
   <language/>
@@ -1351,7 +1351,19 @@
       <accessibility/>
     </property>
     <property>
+      <admin_email/>
+    </property>
+    <property>
       <colorTheme/>
+    </property>
+    <property>
+      <comment_anonymous/>
+    </property>
+    <property>
+      <comment_registered/>
+    </property>
+    <property>
+      <confirmation_email_content/>
     </property>
     <property>
       <core.defaultDocumentSyntax/>
@@ -1360,10 +1372,25 @@
       <dateformat/>
     </property>
     <property>
+      <default_language/>
+    </property>
+    <property>
+      <documentBundles/>
+    </property>
+    <property>
+      <edit_anonymous/>
+    </property>
+    <property>
+      <edit_registered/>
+    </property>
+    <property>
       <editcomment/>
     </property>
     <property>
       <editcomment_mandatory/>
+    </property>
+    <property>
+      <editor/>
     </property>
     <property>
       <guest_comment_requires_captcha/>
@@ -1372,7 +1399,13 @@
       <iconTheme/>
     </property>
     <property>
+      <invitation_email_content/>
+    </property>
+    <property>
       <javamail_extra_props/>
+    </property>
+    <property>
+      <languages/>
     </property>
     <property>
       <ldap/>
@@ -1432,7 +1465,13 @@
       <ldap_validate_password/>
     </property>
     <property>
+      <leftPanels/>
+    </property>
+    <property>
       <leftPanelsWidth/>
+    </property>
+    <property>
+      <meta/>
     </property>
     <property>
       <minoredit/>
@@ -1445,6 +1484,15 @@
     </property>
     <property>
       <plugins/>
+    </property>
+    <property>
+      <registration_anonymous/>
+    </property>
+    <property>
+      <registration_registered/>
+    </property>
+    <property>
+      <rightPanels/>
     </property>
     <property>
       <rightPanelsWidth/>
@@ -1465,7 +1513,13 @@
       <showinformation/>
     </property>
     <property>
+      <skin/>
+    </property>
+    <property>
       <smtp_port/>
+    </property>
+    <property>
+      <smtp_server/>
     </property>
     <property>
       <smtp_server_password/>
@@ -1474,13 +1528,31 @@
       <smtp_server_username/>
     </property>
     <property>
+      <stylesheet/>
+    </property>
+    <property>
+      <stylesheets/>
+    </property>
+    <property>
       <tags/>
     </property>
     <property>
       <timezone/>
     </property>
     <property>
+      <title/>
+    </property>
+    <property>
       <upload_maxsize/>
+    </property>
+    <property>
+      <validation_email_content/>
+    </property>
+    <property>
+      <version/>
+    </property>
+    <property>
+      <webcopyright/>
     </property>
     <property>
       <xwiki.title.mandatory/>
