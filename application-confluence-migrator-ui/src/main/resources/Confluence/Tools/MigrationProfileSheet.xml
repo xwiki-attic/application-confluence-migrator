@@ -102,7 +102,7 @@
       (% class="pull-right" %)(((
         (% class="buttonwrapper" %)(((
           (% class="button" %)(((
-            [[$services.localization.render('confluence.migrator.start')&gt;&gt;$migratorHomePage||queryString="p=${doc.name}"]]
+            [[$services.localization.render('confluence.migrator.start')&gt;&gt;$migratorHomePage||queryString="p=$doc.documentReference.name"]]
           )))
         )))
       )))
