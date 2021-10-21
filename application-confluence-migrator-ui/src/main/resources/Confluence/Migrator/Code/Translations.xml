@@ -163,7 +163,7 @@ confluence.migrator.spaceanalysis.report.nolonghierarchies=None.
 
 ### Confluence export
 confluence.migration.export.title=Confluence space export
-confluence.migration.export.description=At this step, a full export of the space must be ran from your Confluence instance:\n* Go to the space and choose **Space tools** &gt; **Content Tools** from the bottom of the sidebar\n* Choose **Export**\n* Select **XML**, then choose **Next**\n* Select **Full export** \n* Choose **Export**\n\nThe XML resulted from the export will be used in the following step where the migration will start.
+confluence.migration.export.description=At this step, a full export of the space must be ran from your Confluence instance.\nGo to {0}Export space{1} and follow the next steps:\n* Select **Full export** \n* Choose **Export**\n\nThe XML resulted from the export will be used in the following step where the migration will start.
 
 ## Import (Filter)
 confluence.migrator.input=Input

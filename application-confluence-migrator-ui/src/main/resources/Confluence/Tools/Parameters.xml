@@ -36,7 +36,9 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity output="false"}}
+  <content>{{include reference="Confluence.Tools.Macros" /}}
+
+{{velocity output="false"}}
 #set($migratorHomePage = 'Confluence.Migrator.WebHome')
 #set($migratorHomeURL = $xwiki.getURL($migratorHomePage))
 #set($migratorProfilesHomePage = 'Confluence.Migrator.Profiles.WebHome')

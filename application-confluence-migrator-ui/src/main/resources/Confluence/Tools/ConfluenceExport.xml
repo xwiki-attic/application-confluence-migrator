@@ -36,9 +36,11 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{include reference="Confluence.Tools.Parameters" /}}
+
+{{velocity}}
 = $services.localization.render('confluence.migration.export.title') =
 
-$services.localization.render('confluence.migration.export.description')
+$services.localization.render('confluence.migration.export.description', ['[[', "&gt;&gt;${activeProfileDoc.getValue('url')}/wiki/spaces/exportspacexml.action?key=${activeProfileDoc.getValue('space')}||target='_blank']]"])
 {{/velocity}}</content>
 </xwikidoc>
