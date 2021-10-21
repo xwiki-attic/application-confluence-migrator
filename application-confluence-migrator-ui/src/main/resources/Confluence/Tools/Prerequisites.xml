@@ -37,33 +37,167 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity}}
+#set ($discard = $xwiki.ssx.use('Confluence.Tools.Prerequisites'))
 == $services.localization.render('confluence.migrator.prerequisites.title') ==
 
 {{info}}$services.localization.render('confluence.migrator.prerequisites.description'){{/info}}
 
-XWiki should be set with very large memory settings, high cache:
+=== XWiki should be set with very large memory settings, high cache: ===
 
-* Set -Xmx and -Xms to half the memory of the machine (16g for 32g RAM)
-* Set cache to 5000 in xwiki.cfg (instead of 500)
+* $services.icon.render($services.confluencemigrator.prerequisites.checkMemory()) Set -Xmx ($services.confluencemigrator.prerequisites.xmx) and -Xms ($services.confluencemigrator.prerequisites.xms) to at least half the memory of the machine ($mathtool.div($services.confluencemigrator.prerequisites.memory, 2) for $services.confluencemigrator.prerequisites.memory RAM)
+* $services.icon.render($services.confluencemigrator.prerequisites.checkCache()) Set cache (//xwiki.store.cache.capacity//) to 5000 in xwiki.cfg #if($numbertool.toNumber($services.confluencemigrator.prerequisites.cache).intValue() &lt; 5000)(instead of $services.confluencemigrator.prerequisites.cache)#end
 
-Heavy processes should be disabled:
+=== Heavy processes should be disabled: ===
 
-* Deactivate notifications in xwiki.properties (optional)
-* Deactivate notifications on your own profile ("never" for automatic page watching, disable page notifications)
-* Clean Notifications: run [[CleanNotificationsPrefs&gt;&gt;Confluence.Tools.CleanNotificationsPrefs||target='_blank']] (optional)
-* Deactivate SOLR and Notifications listeners
-** from XWiki.ListenerAdmin page on main wiki :
+* $services.icon.render($services.confluencemigrator.prerequisites.checkWikiNotifications()) Deactivate notifications in xwiki.properties: //notifications.enabled// and //notifications.emails.enabled// (optional)
+
+{{info}}Restart the wiki before continuing.{{/info}}
+
+* $services.icon.render($services.confluencemigrator.prerequisites.checkCurrentUserNotification()) Deactivate notifications on your [[own profile&gt;&gt;path:$xwiki.getURL($xcontext.userReference, 'view', 'category=notifications')||target='_blank']] ("never" for automatic page watching, disable page notifications)
+* $services.icon.render($services.confluencemigrator.prerequisites.checkCurrentUserNotificationCleanup()) Run [[Clean Notifications Preferences&gt;&gt;Confluence.Tools.CleanNotificationsPrefs||target='_blank']] to clean the notifications (optional)
+
+* **Deactivate SOLR and Notifications listeners from XWiki.ListenerAdmin page on main wiki:**
 #set ($listenerAdminDoc = $xwiki.getDocument('XWiki.ListenerAdmin'))
 #set ($solrIndexURL = $listenerAdminDoc.getURL('view', '#|t=listeners&amp;listenerClass=SolrIndexEventListener'))
 #set ($automaticWatchURL = $listenerAdminDoc.getURL('view', '#|t=listeners&amp;listenerClass=AutomaticWatchModeListener'))
 #set ($liveNotificationURL = $listenerAdminDoc.getURL('view', '#|t=listeners&amp;listenerClass=LiveNotificationEmailListener'))
-*** [[SolrIndexEventListener&gt;&gt;path:$solrIndexURL||target='_blank']] (optional, as this would disable SOLR indexing for the whole farm)
-## The DocumentMovedListener is available from XWiki 11.3.
-#if ($services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-model').id.version.compareTo('11.3') &gt;= 0)
-  #set ($documentMovedURL = $listenerAdminDoc.getURL('view', '#|t=listeners&amp;listenerClass=DocumentMovedListener'))
-  *** [[DocumentMovedListener&gt;&gt;path:$documentMovedURL||target='_blank']] (important for large spaces)
-#end
-*** [[AutomaticWatchModeListener&gt;&gt;path:$automaticWatchURL||target='_blank']] (important for large spaces)
-*** [[LiveNotificationEmailListener&gt;&gt;path:$liveNotificationURL||target='_blank']] (important for large spaces)
+** $services.icon.render($services.confluencemigrator.prerequisites.checkListener('org.xwiki.search.solr.internal.SolrIndexEventListener', false)) [[Solr Index Event Listener&gt;&gt;path:$solrIndexURL||target='_blank']] (optional, as this would disable SOLR indexing for the whole farm)
+#set ($documentMovedURL = $listenerAdminDoc.getURL('view', '#|t=listeners&amp;listenerClass=DocumentMovedListener'))
+** $services.icon.render($services.confluencemigrator.prerequisites.checkListener('org.xwiki.notifications.filters.internal.DocumentMovedListener', true)) [[Document Moved Listener&gt;&gt;path:$documentMovedURL||target='_blank']] (important for large spaces)
+** $services.icon.render($services.confluencemigrator.prerequisites.checkListener('org.xwiki.notifications.filters.watch.internal.AutomaticWatchModeListener', true)) [[Automatic Watch Mode Listener&gt;&gt;path:$automaticWatchURL||target='_blank']] (important for large spaces)
+** $services.icon.render($services.confluencemigrator.prerequisites.checkListener('org.xwiki.notifications.notifiers.internal.email.live.LiveNotificationEmailListener', true)) [[LiveNotificationEmailListener&gt;&gt;path:$liveNotificationURL||target='_blank']] (important for large spaces)
 {{/velocity}}</content>
+  <object>
+    <name>Confluence.Tools.Prerequisites</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>cd1ad84d-79cc-4570-96a9-025853e79478</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>#template('colorThemeInit.vm')
+.fa-times {
+  .alert-danger;
+  background-color:#fff;
+  border-color:#fff;
+}
+.fa-check {
+  .alert-success;
+  background-color:#fff;
+  border-color:#fff;
+}
+.fa-exclamation-circle {
+  .alert-warning;
+}</code>
+    </property>
+    <property>
+      <contentType>LESS</contentType>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
 </xwikidoc>

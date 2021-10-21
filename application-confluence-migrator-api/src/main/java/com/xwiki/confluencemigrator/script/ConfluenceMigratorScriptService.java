@@ -27,6 +27,8 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.context.Execution;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.script.service.ScriptServiceManager;
+import org.xwiki.stability.Unstable;
 
 import com.xwiki.confluencemigrator.ConfluenceMigratorManager;
 
@@ -37,6 +39,7 @@ import com.xwiki.confluencemigrator.ConfluenceMigratorManager;
 @Component
 @Named("confluencemigrator")
 @Singleton
+@Unstable
 public class ConfluenceMigratorScriptService implements ScriptService
 {
     /**
@@ -48,10 +51,17 @@ public class ConfluenceMigratorScriptService implements ScriptService
      * Provides access to the current context.
      */
     @Inject
-    protected Execution execution;
+    private Execution execution;
 
     @Inject
     private ConfluenceMigratorManager manager;
+
+    @Inject
+    @Named("confluencemigrator.prerequisites")
+    private ScriptService prerequisitesScriptService;
+
+    @Inject
+    private ScriptServiceManager scriptServiceManager;
 
     /**
      * @param profileRef the reference of the profile containing connection details
@@ -86,5 +96,16 @@ public class ConfluenceMigratorScriptService implements ScriptService
     protected void setError(Exception e)
     {
         this.execution.getContext().setProperty(ERROR_KEY, e);
+    }
+
+    /**
+     * @param <S> the type of the {@link ScriptService}
+     * @param serviceName the name of the sub {@link ScriptService}
+     * @return the {@link ScriptService} or null of none could be found
+     */
+    @SuppressWarnings("unchecked")
+    public <S extends ScriptService> S get(String serviceName)
+    {
+        return (S) this.scriptServiceManager.get(String.format("confluencemigrator.%s", serviceName));
     }
 }
