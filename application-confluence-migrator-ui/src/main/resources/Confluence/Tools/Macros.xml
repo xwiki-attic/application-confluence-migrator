@@ -61,15 +61,6 @@
     {{html clean="false"}}
     &lt;/div&gt;
   #end
-  #macro (getMigratorProfileList $migratorProfileList $migratorProfilesNb)
-    #set ($migratorProfilesStatement = "select doc.title, doc.fullName from Document doc, doc.object($migratorProfileClassName) as obj where doc.fullName &lt;&gt; :profileTemplate")
-    #set ($macro.migratorProfileList = $services.query.xwql($migratorProfilesStatement).bindValue('profileTemplate', $migratorProfileTemplateName).execute())
-    #set ($macro.migratorProfilesNb = $services.query.xwql($migratorProfilesStatement).bindValue('profileTemplate', $migratorProfileTemplateName).addFilter('count').execute())
-    #set ($migratorProfileList = $NULL)
-    #set ($migratorProfilesNb = $NULL)
-    #setVariable("$migratorProfileList" $macro.migratorProfileList)
-    #setVariable("$migratorProfilesNb" $macro.migratorProfilesNb.get(0))
-  #end
   ## Display active profile basic parameters : URL and Space name
   #macro (displayActiveProfileBasicParameters $activeProfile)
     #set ($activeProfileDoc = $xwiki.getDocument($activeProfile))

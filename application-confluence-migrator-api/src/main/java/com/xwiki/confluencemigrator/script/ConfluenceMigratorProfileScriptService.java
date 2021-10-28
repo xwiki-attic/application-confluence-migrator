@@ -19,6 +19,8 @@
  */
 package com.xwiki.confluencemigrator.script;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -71,13 +73,23 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
     }
 
     /**
-    * Get the active profile from the current migration.
-    *
-    * @return the name of the active profile
-    */
+     * Get the active profile from the current migration.
+     *
+     * @return the name of the active profile
+     */
     public String getActiveProfile()
     {
         return profile.getActiveProfile();
+    }
+
+    /**
+     * Get the list of migration profiles.
+     *
+     * @return the list of profiles
+     */
+    public List<String> getProfiles()
+    {
+        return profile.getProfiles();
     }
 
     /**

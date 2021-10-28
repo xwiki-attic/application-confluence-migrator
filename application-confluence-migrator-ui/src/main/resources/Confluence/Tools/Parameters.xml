@@ -42,8 +42,6 @@
 #set($migratorHomePage = 'Confluence.Migrator.WebHome')
 #set($migratorHomeURL = $xwiki.getURL($migratorHomePage))
 #set($migratorProfilesHomePage = 'Confluence.Migrator.Profiles.WebHome')
-#set($migratorProfileClassName = 'Confluence.Tools.MigrationProfileClass')
-#set($migratorProfileTemplateName = 'Confluence.Tools.MigrationProfileTemplate')
 #set($activeProfileClassName = 'Confluence.Tools.ActiveMigrationProfileClass')
 #set($steps = {
  1 : {'id' : 'prerequisites', 'reference' : 'Confluence.Tools.Prerequisites'},

@@ -19,6 +19,8 @@
  */
 package com.xwiki.confluencemigrator;
 
+import java.util.List;
+
 import org.xwiki.component.annotation.Role;
 import org.xwiki.model.reference.DocumentReference;
 
@@ -46,9 +48,17 @@ public interface ConfluenceMigratorProfile
     String getActiveProfile();
 
     /**
+     * Get the list of migration profiles.
+     *
+     * @return the list of profiles
+     */
+    List<String> getProfiles();
+
+    /**
      * Generate a new profile name.
      *
      * @return the profile name
      */
     String getNewProfileName();
+
 }

@@ -40,6 +40,7 @@
 
 {{velocity}}
   ## TO DO : display reports
+  #set ($migratorProfileClassName = 'Confluence.Tools.MigrationProfileClass')
   #set ($migrationProfileProperties = $xwiki.getDocument($migratorProfileClassName).getxWikiClass().properties)
   #set ($migrationProfileObj = $doc.getObject($migratorProfileClassName))
   #set ($profileTitle = "$!request.title")

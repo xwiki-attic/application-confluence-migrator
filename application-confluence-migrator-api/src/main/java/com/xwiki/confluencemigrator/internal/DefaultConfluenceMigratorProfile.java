@@ -24,6 +24,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -35,6 +37,9 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryManager;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
@@ -64,6 +69,9 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
 
     @Inject
     private Logger logger;
+
+    @Inject
+    private QueryManager queryManager;
 
     @Override
     public boolean checkConnection(DocumentReference profileRef) throws Exception
@@ -123,6 +131,23 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
             logger.error("Failed to get active profile.", e);
         }
         return null;
+    }
+
+    @Override
+    public List<String> getProfiles()
+    {
+        StringBuilder statement = new StringBuilder("select doc.title, doc.fullName from Document doc, ");
+        statement.append("doc.object(Confluence.Tools.MigrationProfileClass) as obj ");
+        statement.append("where doc.fullName <> 'Confluence.Tools.MigrationProfileTemplate'");
+
+        Query query;
+        try {
+            query = this.queryManager.createQuery(statement.toString(), Query.XWQL);
+            return query.execute();
+        } catch (QueryException e) {
+            logger.error("Could not get the migration profiles", e);
+        }
+        return Collections.emptyList();
     }
 
     @Override
