@@ -20,43 +20,44 @@
 package com.xwiki.confluencemigrator.script;
 
 import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-import org.xwiki.component.annotation.Component;
+import org.xwiki.context.Execution;
 import org.xwiki.script.service.ScriptService;
-import org.xwiki.script.service.ScriptServiceManager;
-import org.xwiki.stability.Unstable;
 
 /**
  * @version $Id$
  * @since 1.0
  */
-@Component
-@Named("confluencemigrator")
-@Singleton
-@Unstable
-public class ConfluenceMigratorScriptService implements ScriptService
+public abstract class AbstractConfluenceMigratorScriptService implements ScriptService
 {
+    /**
+     * Provides access to the current context.
+     */
     @Inject
-    @Named("confluencemigrator.prerequisites")
-    private ScriptService prerequisitesScriptService;
-
-    @Inject
-    @Named("confluencemigrator.profile")
-    private ScriptService profileScriptService;
-
-    @Inject
-    private ScriptServiceManager scriptServiceManager;
+    private Execution execution;
 
     /**
-     * @param <S> the type of the {@link ScriptService}
-     * @param serviceName the name of the sub {@link ScriptService}
-     * @return the {@link ScriptService} or null of none could be found
+     * Get the error generated while performing the previously called action. An error can happen for example when:
+     *
+     * @return the exception or {@code null} if no exception was thrown
      */
-    @SuppressWarnings("unchecked")
-    public <S extends ScriptService> S get(String serviceName)
+    public Exception getLastError()
     {
-        return (S) this.scriptServiceManager.get(String.format("confluencemigrator.%s", serviceName));
+        return (Exception) this.execution.getContext().getProperty(getErrorKey());
     }
+
+    /**
+     * Store a caught exception in the context, so that it can be later retrieved using {@link #getLastError()}.
+     *
+     * @param e the exception to store, can be {@code null} to clear the previously stored exception
+     * @see #getLastError()
+     */
+    protected void setError(Exception e)
+    {
+        this.execution.getContext().setProperty(getErrorKey(), e);
+    }
+
+    /**
+     * @return The key under which the last encountered error is stored in the current execution context.
+     */
+    protected abstract String getErrorKey();
 }

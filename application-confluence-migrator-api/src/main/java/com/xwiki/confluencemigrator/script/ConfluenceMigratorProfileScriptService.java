@@ -24,39 +24,53 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.script.service.ScriptService;
-import org.xwiki.script.service.ScriptServiceManager;
+import org.xwiki.context.Execution;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
+
+import com.xwiki.confluencemigrator.ConfluenceMigratorManager;
 
 /**
  * @version $Id$
  * @since 1.0
  */
 @Component
-@Named("confluencemigrator")
+@Named("confluencemigrator.profile")
 @Singleton
 @Unstable
-public class ConfluenceMigratorScriptService implements ScriptService
+public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMigratorScriptService
 {
-    @Inject
-    @Named("confluencemigrator.prerequisites")
-    private ScriptService prerequisitesScriptService;
-
-    @Inject
-    @Named("confluencemigrator.profile")
-    private ScriptService profileScriptService;
-
-    @Inject
-    private ScriptServiceManager scriptServiceManager;
+    /**
+     * The key under which the last encountered error is stored in the current execution context.
+     */
+    static final String ERROR_KEY = "scriptservice.confluencemigrator.profile.error";
 
     /**
-     * @param <S> the type of the {@link ScriptService}
-     * @param serviceName the name of the sub {@link ScriptService}
-     * @return the {@link ScriptService} or null of none could be found
+     * Provides access to the current context.
      */
-    @SuppressWarnings("unchecked")
-    public <S extends ScriptService> S get(String serviceName)
+    @Inject
+    protected Execution execution;
+
+    @Inject
+    private ConfluenceMigratorManager manager;
+
+    /**
+     * @param profileRef the reference of the profile containing connection details
+     * @return true if connection is established, false otherwise
+     */
+    public boolean checkConnection(DocumentReference profileRef)
     {
-        return (S) this.scriptServiceManager.get(String.format("confluencemigrator.%s", serviceName));
+        try {
+            return manager.checkConnection(profileRef);
+        } catch (Exception e) {
+            setError(e);
+            return false;
+        }
+    }
+
+    @Override
+    protected String getErrorKey()
+    {
+        return ERROR_KEY;
     }
 }

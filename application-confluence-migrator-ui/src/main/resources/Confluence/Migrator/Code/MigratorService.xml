@@ -39,7 +39,7 @@
   <content>{{velocity wiki="false"}}
 #if ($xcontext.action == 'get')
   #if ($request.action == 'checkConnection')
-    #if ($services.confluencemigrator.checkConnection($services.model.resolveDocument($request.profile)))
+    #if ($services.confluencemigrator.profile.checkConnection($services.model.resolveDocument($request.profile)))
       &lt;div class="box successmessage"&gt;
         $services.localization.render('confluence.migrator.profile.checkConnection.success')
       &lt;/div&gt;
@@ -48,8 +48,8 @@
         $services.localization.render('confluence.migrator.profile.checkConnection.fail')
       &lt;/div&gt;
       &lt;div class="xwikirenderingerrordescription hidden"&gt;
-        #if ($services.confluencemigrator.lastError)
-          &lt;pre&gt;$exceptiontool.getStackTrace($services.confluencemigrator.lastError)&lt;/pre&gt;
+        #if ($services.confluencemigrator.profile.lastError)
+          &lt;pre&gt;$exceptiontool.getStackTrace($services.confluencemigrator.profile.lastError)&lt;/pre&gt;
         #end
       &lt;/div&gt;
     #end

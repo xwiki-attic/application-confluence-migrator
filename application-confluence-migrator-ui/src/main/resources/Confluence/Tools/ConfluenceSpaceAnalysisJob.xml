@@ -35,7 +35,7 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content>{{job id="confluence/spaceanalysis" start="{{velocity~}~}$!{request.confirm}{{/velocity~}~}"}}
 {{groovy}}
   import groovy.json.*
@@ -227,11 +227,11 @@ ${docsHierarchyTooLongText}
   } else if (space==null || space=="") {
     log.error(services.localization.render('confluence.migrator.spaceanalysis.spacemissing'))
   } else {
-    if (services.confluencemigrator.checkConnection(services.model.resolveDocument(activeProfile))) {
+    if (services.confluencemigrator.profile.checkConnection(services.model.resolveDocument(activeProfile))) {
       log.info(services.localization.render('confluence.migrator.profile.checkConnection.success'))
     } else {
       log.error(services.localization.render('confluence.migrator.profile.checkConnection.fail'))
-      log.error(services.confluencemigrator.lastError.toString())
+      log.error(services.confluencemigrator.profile.lastError.toString())
     }
     log.info(services.localization.render('confluence.migrator.spaceanalysis.start'))
     log.info(services.localization.render('confluence.migrator.spaceanalysis.linktoreport', [resultDoc.getExternalURL()]))

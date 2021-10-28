@@ -25,7 +25,6 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.context.Execution;
-import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
 import com.xwiki.confluencemigrator.ConfluenceMigratorPrerequisites;
@@ -38,7 +37,7 @@ import com.xwiki.confluencemigrator.ConfluenceMigratorPrerequisites;
 @Named("confluencemigrator.prerequisites")
 @Singleton
 @Unstable
-public class ConfluenceMigratorPrerequisitesScriptService implements ScriptService
+public class ConfluenceMigratorPrerequisitesScriptService extends AbstractConfluenceMigratorScriptService
 {
     /**
      * The key under which the last encountered error is stored in the current execution context.
@@ -156,24 +155,9 @@ public class ConfluenceMigratorPrerequisitesScriptService implements ScriptServi
         return prerequisites.checkCurrentUserNotificationCleanup();
     }
 
-    /**
-     * Get the error generated while performing the previously called action. An error can happen for example when:
-     *
-     * @return the exception or {@code null} if no exception was thrown
-     */
-    public Exception getLastError()
+    @Override
+    protected String getErrorKey()
     {
-        return (Exception) this.execution.getContext().getProperty(ERROR_KEY);
-    }
-
-    /**
-     * Store a caught exception in the context, so that it can be later retrieved using {@link #getLastError()}.
-     *
-     * @param e the exception to store, can be {@code null} to clear the previously stored exception
-     * @see #getLastError()
-     */
-    protected void setError(Exception e)
-    {
-        this.execution.getContext().setProperty(ERROR_KEY, e);
+        return ERROR_KEY;
     }
 }
