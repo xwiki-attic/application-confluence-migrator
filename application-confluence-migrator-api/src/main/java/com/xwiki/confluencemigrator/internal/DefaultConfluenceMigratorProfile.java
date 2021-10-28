@@ -140,9 +140,8 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
         statement.append("doc.object(Confluence.Tools.MigrationProfileClass) as obj ");
         statement.append("where doc.fullName <> 'Confluence.Tools.MigrationProfileTemplate'");
 
-        Query query;
         try {
-            query = this.queryManager.createQuery(statement.toString(), Query.XWQL);
+            Query query = this.queryManager.createQuery(statement.toString(), Query.XWQL);
             return query.execute();
         } catch (QueryException e) {
             logger.error("Could not get the migration profiles", e);
