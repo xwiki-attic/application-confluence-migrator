@@ -28,7 +28,7 @@ import org.xwiki.context.Execution;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 
-import com.xwiki.confluencemigrator.ConfluenceMigratorManager;
+import com.xwiki.confluencemigrator.ConfluenceMigratorProfile;
 
 /**
  * @version $Id$
@@ -52,7 +52,7 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
     protected Execution execution;
 
     @Inject
-    private ConfluenceMigratorManager manager;
+    private ConfluenceMigratorProfile profile;
 
     /**
      * @param profileRef the reference of the profile containing connection details
@@ -61,7 +61,7 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
     public boolean checkConnection(DocumentReference profileRef)
     {
         try {
-            return manager.checkConnection(profileRef);
+            return profile.checkConnection(profileRef);
         } catch (Exception e) {
             setError(e);
             return false;

@@ -27,7 +27,7 @@ import org.xwiki.model.reference.DocumentReference;
  * @since 1.0
  */
 @Role
-public interface ConfluenceMigratorManager
+public interface ConfluenceMigratorProfile
 {
     /**
      * @param profileRef the reference of the profile containing connection details

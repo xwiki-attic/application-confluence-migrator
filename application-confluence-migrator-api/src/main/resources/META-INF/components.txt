@@ -1,4 +1,5 @@
-com.xwiki.confluencemigrator.internal.DefaultConfluenceMigratorManager
+com.xwiki.confluencemigrator.internal.DefaultConfluenceMigratorProfile
 com.xwiki.confluencemigrator.internal.DefaultConfluenceMigratorPrerequisites
 com.xwiki.confluencemigrator.script.ConfluenceMigratorScriptService
 com.xwiki.confluencemigrator.script.ConfluenceMigratorPrerequisitesScriptService
+com.xwiki.confluencemigrator.script.ConfluenceMigratorProfileScriptService

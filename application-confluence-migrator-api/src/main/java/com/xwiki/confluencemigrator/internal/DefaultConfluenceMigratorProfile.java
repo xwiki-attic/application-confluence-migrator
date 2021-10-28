@@ -38,7 +38,7 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
-import com.xwiki.confluencemigrator.ConfluenceMigratorManager;
+import com.xwiki.confluencemigrator.ConfluenceMigratorProfile;
 
 /**
  * @version $Id$
@@ -46,7 +46,7 @@ import com.xwiki.confluencemigrator.ConfluenceMigratorManager;
  */
 @Component
 @Singleton
-public class DefaultConfluenceMigratorManager implements ConfluenceMigratorManager
+public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfile
 {
     private static final String WIKI_ENDING = "/wiki";
 
