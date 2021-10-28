@@ -55,6 +55,8 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
     private ConfluenceMigratorProfile profile;
 
     /**
+     * Check the connection with the details from the profile.
+     *
      * @param profileRef the reference of the profile containing connection details
      * @return true if connection is established, false otherwise
      */
@@ -66,6 +68,26 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
             setError(e);
             return false;
         }
+    }
+
+    /**
+    * Get the active profile from the current migration.
+    *
+    * @return the name of the active profile
+    */
+    public String getActiveProfile()
+    {
+        return profile.getActiveProfile();
+    }
+
+    /**
+     * Generate a new profile name.
+     *
+     * @return the profile name
+     */
+    public String getNewProfileName()
+    {
+        return profile.getNewProfileName();
     }
 
     @Override

@@ -38,8 +38,6 @@
   <hidden>true</hidden>
   <content>{{include reference="Confluence.Tools.Parameters" /}}
 
-{{include reference="Confluence.Tools.Macros" /}}
-
 {{velocity}}
   ## TO DO : display reports
   #set ($migrationProfileProperties = $xwiki.getDocument($migratorProfileClassName).getxWikiClass().properties)
@@ -87,8 +85,8 @@
     ## Status of the current profile
     ## Check the active profile. If it's not this one, invite to resume the active profile,
     ## otherwise, invite to resume the current profile from the active step.
-    #getActiveProfile($activeProfile $activeStep $stepsTaken)
-    #if ("$!activeProfile.trim()" != '')
+    #set ($activeProfile = $services.confluencemigrator.profile.activeProfile)
+    #if ("$!activeProfile" != '')
       #if ($activeProfile == $doc.fullName)
         ## The active profile is this one =&gt; Resume the current profile.
         {{info}}$services.localization.render('confluence.migrator.resume.current'){{/info}}
@@ -102,7 +100,7 @@
       (% class="pull-right" %)(((
         (% class="buttonwrapper" %)(((
           (% class="button" %)(((
-            [[$services.localization.render('confluence.migrator.start')&gt;&gt;$migratorHomePage||queryString="p=$doc.documentReference.name"]]
+            [[$services.localization.render('confluence.migrator.start')&gt;&gt;$migratorHomePage||queryString="p=$doc.fullName"]]
           )))
         )))
       )))

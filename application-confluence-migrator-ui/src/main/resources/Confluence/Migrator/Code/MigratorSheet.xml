@@ -41,11 +41,11 @@
 {{include reference="Confluence.Tools.Macros" /}}
 
 {{velocity}}
-  #getActiveProfile($activeProfile $activeStep $stepsTaken)
+  #set ($activeProfile = $services.confluencemigrator.profile.activeProfile)
   #set ($updateActiveProfile = false)
   #set ($migratorProfilesHomeDoc = $xwiki.getDocument($migratorProfilesHomePage))
   #set ($migratorProfilesObj = $migratorProfilesHomeDoc.getObject($activeProfileClassName, true))
-  #if ("$!activeProfile.trim()" == '')
+  #if ("$!activeProfile" == '')
     #if("$!request.p" != '')
       ## Activate migration profile
       #set ($updateActiveProfile = true)
@@ -101,8 +101,7 @@
           (% class="col-md-8" %)(((
             $services.localization.render('confluence.migrator.profile.activecurrent')
             #if($activeProfile)
-              #set ($activeProfileDoc = $xwiki.getDocument($activeProfile))
-              #displayActiveProfileBasicParameters($activeProfileDoc)
+              #displayActiveProfileBasicParameters($activeProfile)
             #end
           )))
            (% class="col-md-4" %)(((

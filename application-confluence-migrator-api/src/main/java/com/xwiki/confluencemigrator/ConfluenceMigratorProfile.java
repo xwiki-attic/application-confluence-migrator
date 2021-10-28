@@ -30,9 +30,25 @@ import org.xwiki.model.reference.DocumentReference;
 public interface ConfluenceMigratorProfile
 {
     /**
+     * Check the connection with the details from the profile.
+     *
      * @param profileRef the reference of the profile containing connection details
      * @return true if connection is established, false otherwise
      * @throws Exception in case of exceptions
      */
     boolean checkConnection(DocumentReference profileRef) throws Exception;
+
+    /**
+     * Get the active profile from the current migration.
+     *
+     * @return the name of the active profile
+     */
+    String getActiveProfile();
+
+    /**
+     * Generate a new profile name.
+     *
+     * @return the profile name
+     */
+    String getNewProfileName();
 }

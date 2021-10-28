@@ -54,7 +54,7 @@
  6 : {'id' : 'nestedmigration', 'reference' : 'NestedPagesMigration.WebHome'}
 })
 #set ($hiddenMigrationProfileProperties = ['activeStep', 'stepsTaken'])
-#getActiveProfile($activeProfile $activeStep $stepsTaken)
+#set ($activeProfile = $services.confluencemigrator.profile.activeProfile)
 #set ($activeProfileDoc = $xwiki.getDocument($activeProfile))
 #set ($filterDefaults = {
   'input' : {

@@ -49,18 +49,14 @@
   def baseUrl = null
   def username = null
   def token = null
-  def activeProfile = null
+  def activeProfile = services.confluencemigrator.profile.activeProfile
 
-  def activeProfileObj = xwiki.getDocument("Confluence.Migrator.Profiles.WebHome").getObject("Confluence.Tools.ActiveMigrationProfileClass")
-  if (activeProfileObj != null) {
-    activeProfile = activeProfileObj.getProperty("profile").value
-    if(activeProfile) {
-      def profileObj = xwiki.getDocument(activeProfile).getObject("Confluence.Tools.MigrationProfileClass")
-      space = profileObj.getProperty("space").value
-      baseUrl = profileObj.getProperty("url").value
-      username = profileObj.getProperty("username").value
-      token = profileObj.getProperty("token").value
-    }
+  if(activeProfile) {
+    def profileObj = xwiki.getDocument(activeProfile).getObject("Confluence.Tools.MigrationProfileClass")
+    space = profileObj.getProperty("space").value
+    baseUrl = profileObj.getProperty("url").value
+    username = profileObj.getProperty("username").value
+    token = profileObj.getProperty("token").value
   }
 
   def max = 240

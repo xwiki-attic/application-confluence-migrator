@@ -29,11 +29,14 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.LocalDocumentReference;
 
+import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -52,6 +55,9 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
 
     private static final LocalDocumentReference PROFILE_CLASS_REFERENCE =
         new LocalDocumentReference(Arrays.asList("Confluence", "Tools"), "MigrationProfileClass");
+
+    @Inject
+    private DocumentReferenceResolver<String> resolver;
 
     @Inject
     private Provider<XWikiContext> contextProvider;
@@ -98,5 +104,37 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
                 connection.disconnect();
             }
         }
+    }
+
+    @Override
+    public String getActiveProfile()
+    {
+        XWikiContext context = contextProvider.get();
+        XWiki xwiki = context.getWiki();
+        DocumentReference profilesHomePageRef = resolver.resolve("Confluence.Migrator.Profiles.WebHome");
+        try {
+            XWikiDocument profilesHomePageDoc = xwiki.getDocument(profilesHomePageRef, context);
+            DocumentReference activeProfileClassRef = resolver.resolve("Confluence.Tools.ActiveMigrationProfileClass");
+            BaseObject activeProfileObj = profilesHomePageDoc.getXObject(activeProfileClassRef);
+            if (activeProfileObj != null) {
+                return activeProfileObj.getStringValue("profile");
+            }
+        } catch (XWikiException e) {
+            logger.error("Failed to get active profile.", e);
+        }
+        return null;
+    }
+
+    @Override
+    public String getNewProfileName()
+    {
+        XWikiContext context = contextProvider.get();
+        XWiki xwiki = context.getWiki();
+        long profileId = RandomUtils.nextLong(1000000, 9999999);
+        String profileName = String.format("Confluence.Migrator.Profiles.%s.WebHome", profileId);
+        if (!xwiki.exists(resolver.resolve(profileName), context)) {
+            return profileName;
+        }
+        return getNewProfileName();
     }
 }
