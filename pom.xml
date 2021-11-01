@@ -44,7 +44,7 @@
     <tag>HEAD</tag>
   </scm>
   <properties>
-    <licensing.version>1.19</licensing.version>
+    <licensing.version>1.20</licensing.version>
     <confluence.xml.version>9.14.1</confluence.xml.version>
     <nestedpages.migrator.version>0.8</nestedpages.migrator.version>
     <pro.macros.version>1.1.1</pro.macros.version>
