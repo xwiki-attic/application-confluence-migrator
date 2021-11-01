@@ -54,5 +54,10 @@
       <artifactId>xwiki-platform-notifications-filters-api</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-store-filesystem-oldcore</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
   </dependencies>
 </project>

@@ -173,6 +173,9 @@ confluence.migrator.input.source.description=The source to load the Confluence p
 confluence.migrator.input.source.supportedformats=Supported formats are &lt;strong&gt;file:&amp;lt;path on server&amp;gt;&lt;/strong&gt; (e.g. &lt;strong&gt;file:/home/myuser/myfile.zip&lt;/strong&gt;) and &lt;strong&gt;url:&amp;lt;url&amp;gt;&lt;/strong&gt; (e.g. &lt;strong&gt;http://myserver/some/file/to/myfile.zip&lt;/strong&gt;).
 confluence.migrator.advanced=Advanced setup
 confluence.migrator.import=Import
+confluence.migrator.upload=Upload
+confluence.migrator.upload.label=File
+confluence.migrator.upload.hint=Upload the Confluence .ZIP archive. Please make sure the size does not exceed 1GB.
 
 ## Post import fixes
 confluence.migrator.parents.space=Space

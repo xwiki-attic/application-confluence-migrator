@@ -61,4 +61,12 @@ public interface ConfluenceMigratorProfile
      */
     String getNewProfileName();
 
+    /**
+     * Get the path of the attachment in the file system.
+     *
+     * @param fileName the name of the uploaded file
+     * @return the file path
+     */
+    String getFilePath(String fileName);
+
 }

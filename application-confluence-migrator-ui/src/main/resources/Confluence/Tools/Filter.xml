@@ -36,9 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference="Confluence.Tools.Parameters"/}}
-
-{{velocity output="false"}}
+  <content>{{velocity output="false"}}
   #set ($input = 'confluence+xml')
   #set ($output = 'xwiki+instance')
   #macro (displayInputFormField $propertyDescriptor)
@@ -149,6 +147,21 @@
 {{/velocity}}
 
 {{velocity}}
+#set ($activeProfileDoc = $xwiki.getDocument($services.confluencemigrator.profile.activeProfile))
+#set ($filterDefaults = {
+  'input' : {
+    'verbose' : 'false',
+    'usersEnabled' : 'false',
+    'prefixedMacros' : 'chart, gallery',
+    'baseURLs' : "$!activeProfileDoc.getValue('url')",
+    'storeConfluenceDetailsEnabled': true
+  },
+  'output' : {
+    'versionPreserved' : 'true',
+    'stoppedWhenSaveFail' : 'false'
+  }
+})
+
 #if ($request.convert)
   #if ($targetStandardOutput)
     #set ($discard = $response.setContentType('application/octet-stream'))
@@ -192,23 +205,30 @@
   == Configuration ==
 
   {{html clean="false"}}
+    ## Form to upload the .ZIP file exported feom Confluence.
+    &lt;div class="xform"&gt;
+    &lt;h2&gt;$services.localization.render('confluence.migrator.upload')&lt;/h2&gt;
+    &lt;dl&gt;
+      &lt;dt&gt;
+        &lt;label for="xwikiuploadfile"&gt;$services.localization.render('confluence.migrator.upload.label')&lt;/label&gt;
+        &lt;span class="xHint"&gt;$services.localization.render('confluence.migrator.upload.hint')&lt;/span&gt;
+      &lt;/dt&gt;
+      &lt;dd&gt;
+        #template("attachmentsinline.vm")
+      &lt;/dd&gt;
+    &lt;/div&gt;
     &lt;form class="xform" method="post"&gt;
       &lt;div class="hidden"&gt;
         &lt;input type="hidden" name="form_token" value="$!services.csrf.getToken()"&gt;
         &lt;input type="hidden" name="xredirect" value="$doc.getURL('view', '#step-4')"&gt;
       &lt;/div&gt;
       &lt;input type="hidden" name="import" value="true" /&gt;
-      &lt;h2&gt;$services.localization.render('confluence.migrator.input')&lt;/h2&gt;
-      &lt;dl&gt;
-        #displayFormFieldInline('input' 'source' $NULL true true)
-      &lt;/dl&gt;
       &lt;div class="collapse confluence-migrator-collapse" id="advancedInputFields"&gt;
+        &lt;h2&gt;$services.localization.render('confluence.migrator.input')&lt;/h2&gt;
         &lt;dl&gt;
           #set ($descriptor = $services.filter.getInputFilterStreamDescriptor($input))
           #foreach ($propertyDescriptor in $descriptor.properties)
-            #if ($propertyDescriptor.id != 'source')
-              #displayInputFormField($propertyDescriptor)
-            #end
+            #displayInputFormField($propertyDescriptor)
           #end
         &lt;/dl&gt;
         &lt;h2&gt;$services.localization.render('confluence.migrator.output')&lt;/h2&gt;

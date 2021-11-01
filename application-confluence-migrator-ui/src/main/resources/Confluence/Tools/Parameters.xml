@@ -54,18 +54,5 @@
 #set ($hiddenMigrationProfileProperties = ['activeStep', 'stepsTaken'])
 #set ($activeProfile = $services.confluencemigrator.profile.activeProfile)
 #set ($activeProfileDoc = $xwiki.getDocument($activeProfile))
-#set ($filterDefaults = {
-  'input' : {
-    'verbose' : 'false',
-    'usersEnabled' : 'false',
-    'prefixedMacros' : 'chart, gallery',
-    'baseURLs' : "$!activeProfileDoc.getValue('url')",
-    'storeConfluenceDetailsEnabled': true
-  },
-  'output' : {
-    'versionPreserved' : 'true',
-    'stoppedWhenSaveFail' : 'false'
-  }
-})
 {{/velocity}}</content>
 </xwikidoc>

@@ -34,16 +34,19 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
+import org.xwiki.store.filesystem.internal.FilesystemStoreTools;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xwiki.confluencemigrator.ConfluenceMigratorProfile;
@@ -66,6 +69,9 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
 
     @Inject
     private Provider<XWikiContext> contextProvider;
+
+    @Inject
+    private FilesystemStoreTools fstools;
 
     @Inject
     private Logger logger;
@@ -160,5 +166,28 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
             return profileName;
         }
         return getNewProfileName();
+    }
+
+    @Override
+    public String getFilePath(String fileName)
+    {
+        XWikiContext context = contextProvider.get();
+        XWiki xwiki = context.getWiki();
+        DocumentReference pageRef = resolver.resolve("Confluence.Migrator.WebHome");
+        AttachmentReference attachmentRef = new AttachmentReference(fileName, pageRef);
+
+        try {
+            XWikiDocument pageDoc = xwiki.getDocument(attachmentRef.getDocumentReference(), context);
+            XWikiAttachment attachment = pageDoc.getAttachment(fileName);
+            if (attachment != null) {
+                String path = fstools.getAttachmentFileProvider(attachmentRef).getAttachmentContentFile().getPath();
+                // Delete the attachment from the XWiki document, relying on the temporary file in the file store.
+                pageDoc.removeAttachment(attachment);
+                return String.format("file:%s", path);
+            }
+        } catch (XWikiException e) {
+            logger.error("Could not get the file path", e);
+        }
+        return null;
     }
 }

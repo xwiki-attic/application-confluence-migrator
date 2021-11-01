@@ -102,6 +102,17 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
         return profile.getNewProfileName();
     }
 
+    /**
+     * Get the path of the attachment in the file system.
+     *
+     * @param fileName the name of the uploaded file
+     * @return the file path
+     */
+    public String getFilePath(String fileName)
+    {
+        return profile.getFilePath(fileName);
+    }
+
     @Override
     protected String getErrorKey()
     {

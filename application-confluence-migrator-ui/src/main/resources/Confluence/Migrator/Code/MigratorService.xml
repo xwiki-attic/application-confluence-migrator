@@ -54,6 +54,10 @@
       &lt;/div&gt;
     #end
   #end
+  #if ($request.action == 'getFilePath' &amp;&amp; $request.outputSyntax == 'plain')
+    #set ($discard = $response.setContentType('application/json'))
+    $jsontool.serialize({'filePath': $services.confluencemigrator.profile.getFilePath($request.fileName)})
+  #end
 #end
 {{/velocity}}</content>
 </xwikidoc>
