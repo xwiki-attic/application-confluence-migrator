@@ -224,17 +224,16 @@
     <property>
       <code>require(['jquery'], function ($) {
   $('#checkConnection button').click(function() {
-    var queryString = 'outputSyntax=plain&amp;action=checkConnection&amp;profile=' + $('#checkConnection button').data('profile');
-    var serviceURL = new XWiki.Document('MigratorService', 'Confluence.Migrator.Code').getURL('get');
-    $.post(
-      serviceURL,
-      {
-        outputSyntax: 'plain',
-        action: 'checkConnection',
-        profile: $('#checkConnection button').data('profile')
-      }
-    ).done(function(data) {
-      $('#checkConnectionResponse').html(data);
+    var profile = $('#checkConnection button').data('profile');
+    var serviceDoc = new XWiki.Document('MigratorService', 'Confluence.Migrator.Code');
+    var queryString = $.param({
+      'action': 'checkConnection',
+      'outputSyntax': 'plain',
+      'profile': profile
+    });
+    $.post(serviceDoc.getURL('get', queryString))
+      .done(function(data) {
+        $('#checkConnectionResponse').html(data);
     });
   });
   $('#checkConnectionResponse').on('click', '.xwikirenderingerror', function() {
