@@ -129,9 +129,12 @@
         $doc.content
       #end
 
-      $services.localization.render('confluence.migrator.profile.reports')
+      ## Show the reports only when they exist. Exclude the profile WebHome children from counting.
+      #if ($doc.children.size() &gt; 1)
+        $services.localization.render('confluence.migrator.profile.reports')
 
-      {{children/}}
+        {{children/}}
+      #end
     #end
   #end
 {{/velocity}}</content>
