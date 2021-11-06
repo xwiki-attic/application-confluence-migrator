@@ -126,7 +126,10 @@
       {{/html}}
 
       #if ($doc.fullName != 'Confluence.Tools.MigrationProfileSheet')
-        $doc.content
+        #set ($generalReportRef = $services.model.createDocumentReference('GeneralReport', $doc.documentReference.lastSpaceReference))
+        #if ($xwiki.exists($generalReportRef))
+          {{include reference="$generalReportRef" /}}
+        #end
       #end
 
       ## Show the reports only when they exist. Exclude the profile WebHome children from counting.

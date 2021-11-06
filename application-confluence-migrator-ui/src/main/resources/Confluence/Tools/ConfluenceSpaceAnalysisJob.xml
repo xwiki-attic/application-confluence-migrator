@@ -68,7 +68,7 @@
   def docsHierarchyTooLong = ""
   def importCheck = false
 
-  def resultDoc = xwiki.getDocument(activeProfile)
+  def activeProfileDoc = xwiki.getDocument(activeProfile)
 
   if (request.start) {
      start = Integer.parseInt(request.start)
@@ -149,7 +149,56 @@
     return map
   }
 
-  def saveStatus(space, resultDoc, docsTooLong, docsHierarchyTooLong, countAll, countLong, countLongHierarchy, maxDeepLevel, pagesImported, pagesNotImported, importedPageList, partial) {
+  def createLongPageNamesReport(longPageNamesTitle, docsTooLongText, spaceRef, parentFullName) {
+    def reportDoc = xwiki.getDocument(services.model.createDocumentReference('TooLongPageNames', spaceRef))
+    reportDoc.setTitle(longPageNamesTitle)
+    reportDoc.setContent(docsTooLongText)
+    reportDoc.setParent(parentFullName)
+    reportDoc.save(services.localization.render('confluence.migrator.spaceanalysis.report.saving'))
+  }
+
+  def createLongHierarchiesReport(longHierarchiesTitle, docsHierarchyTooLongText, spaceRef, parentFullName) {
+    def reportDoc = xwiki.getDocument(services.model.createDocumentReference('TooLongHierarchyPages', spaceRef))
+    reportDoc.setTitle(longHierarchiesTitle)
+    reportDoc.setContent(docsHierarchyTooLongText)
+    reportDoc.setParent(parentFullName)
+    reportDoc.save(services.localization.render('confluence.migrator.spaceanalysis.report.saving'))
+  }
+
+  def createPagesToSkipFromImportingReport(pagesNotImported, spaceRef, parentFullName) {
+    def reportDoc = xwiki.getDocument(services.model.createDocumentReference('PagesToSkipFromImporting', spaceRef))
+    reportDoc.setTitle(services.localization.render('confluence.migrator.spaceanalysis.report.skipped'))
+    def content = ""
+    if(pagesNotImported.size() &gt; 0) {
+      for (item in pagesNotImported) {
+        content += "* {{{ ${item}}}}\n"
+      }
+    } else {
+      content += "${services.localization.render('confluence.migrator.spaceanalysis.report.noskipped')}\n"
+    }
+    reportDoc.setContent(content)
+    reportDoc.setParent(parentFullName)
+    reportDoc.save(services.localization.render('confluence.migrator.spaceanalysis.report.saving'))
+  }
+
+  def createPagesNotFoundInConfluenceReport(importedPageList, spaceRef, parentFullName) {
+    def reportDoc = xwiki.getDocument(services.model.createDocumentReference('PagesNotFoundInConfluence', spaceRef))
+    reportDoc.setTitle(services.localization.render('confluence.migrator.spaceanalysis.report.remaining'))
+    def content = ""
+    if(importedPageList.keySet().size() &gt; 0) {
+      for (item in importedPageList.keySet()) {
+        def fullName = importedPageList.get(item)
+        content += "* {{{ ${item} }}} [[${fullName}]]\n"
+      }
+    } else {
+      content += "${services.localization.render('confluence.migrator.spaceanalysis.report.noremaining')}\n"
+    }
+    reportDoc.setContent(content)
+    reportDoc.setParent(parentFullName)
+    reportDoc.save(services.localization.render('confluence.migrator.spaceanalysis.report.saving'))
+  }
+
+  def saveStatus(space, activeProfileDoc, docsTooLong, docsHierarchyTooLong, countAll, countLong, countLongHierarchy, maxDeepLevel, pagesImported, pagesNotImported, importedPageList, partial) {
     def spartial = (partial) ? " (${services.localization.render('confluence.migrator.spaceanalysis.partialimport')})" : ""
     def reportTitle = services.localization.render("confluence.migrator.spaceanalysis.report.title", [space, spartial])
     def docsNbText = services.localization.render("confluence.migrator.spaceanalysis.report.docsnb", [countAll])
@@ -163,8 +212,7 @@
     def longHierarchiesTitle = services.localization.render("confluence.migrator.spaceanalysis.report.longhierarchies")
     def docsTooLongText = docsTooLong.trim().length() &gt; 0 ? docsTooLong : services.localization.render("confluence.migrator.spaceanalysis.report.nolongpagenames")
     def docsHierarchyTooLongText = docsHierarchyTooLong.trim().length() &gt; 0 ? docsHierarchyTooLong : services.localization.render("confluence.migrator.spaceanalysis.report.nolonghierarchies")
-    def content = """= ${reportTitle} =
-
+    def content = """
 * ${docsNbText}
 * ${longPageNamesNbText}
 * ${longHierarchiesNbText}
@@ -172,39 +220,24 @@
 * ${importedNbText}
 * ${skippedNbText}
 * ${remainingNbText}
-
-== ${longPageNamesTitle} ==
-
-${docsTooLongText}
-
-== ${longHierarchiesTitle} ==
-
-${docsHierarchyTooLongText}
-
 """
 
-    if (partial==false) {
-      content += "\n\n== ${services.localization.render('confluence.migrator.spaceanalysis.report.skipped')} ==\n\n"
-      if(pagesNotImported.size() &gt; 0) {
-        for (item in pagesNotImported) {
-          content += "* {{{ ${item}}}}\n"
-        }
-      } else {
-        content += "${services.localization.render('confluence.migrator.spaceanalysis.report.noskipped')}\n"
-      }
-      content += "\n\n== ${services.localization.render('confluence.migrator.spaceanalysis.report.remaining')} ==\n\n"
-      if(importedPageList.keySet().size() &gt; 0) {
-        for (item in importedPageList.keySet()) {
-          def fullName = importedPageList.get(item)
-          content += "* {{{ ${item} }}} [[${fullName}]]\n"
-        }
-      } else {
-        content += "${services.localization.render('confluence.migrator.spaceanalysis.report.noremaining')}\n"
-      }
-    }
+    def parentFullName = activeProfileDoc.fullName
+    def spaceRef = activeProfileDoc.documentReference.lastSpaceReference;
+    def generalReportDoc = xwiki.getDocument(services.model.createDocumentReference('GeneralReport', spaceRef))
 
-    resultDoc.setContent(content)
-    resultDoc.save(services.localization.render('confluence.migrator.spaceanalysis.report.saving') +  " " + spartial)
+    generalReportDoc.setTitle(reportTitle)
+    generalReportDoc.setParent(parentFullName)
+    generalReportDoc.setContent(content)
+    generalReportDoc.save(services.localization.render('confluence.migrator.spaceanalysis.report.saving') +  " " + spartial)
+
+    createLongPageNamesReport(longPageNamesTitle, docsTooLongText, spaceRef, parentFullName)
+    createLongHierarchiesReport(longHierarchiesTitle, docsHierarchyTooLongText, spaceRef, parentFullName)
+
+    if (partial==false) {
+      createPagesToSkipFromImportingReport(pagesNotImported, spaceRef, parentFullName)
+      createPagesNotFoundInConfluenceReport(importedPageList, spaceRef, parentFullName)
+    }
   }
 
   def countAll = 0
@@ -230,7 +263,7 @@ ${docsHierarchyTooLongText}
       log.error(services.confluencemigrator.profile.lastError.toString())
     }
     log.info(services.localization.render('confluence.migrator.spaceanalysis.start'))
-    log.info(services.localization.render('confluence.migrator.spaceanalysis.linktoreport', [resultDoc.getExternalURL()]))
+    log.info(services.localization.render('confluence.migrator.spaceanalysis.linktoreport', [activeProfileDoc.getExternalURL()]))
     if (importCheck) {
       importedPageList = getImportedPageList(space, log, xwiki)
     }
@@ -306,7 +339,7 @@ ${docsHierarchyTooLongText}
           log.info(services.localization.render('confluence.migrator.spaceanalysis.longpagenames', [countLong]))
           log.info(services.localization.render('confluence.migrator.spaceanalysis.longhierarchies', [countLongHierarchy]))
           log.info(services.localization.render('confluence.migrator.spaceanalysis.maxdeeplevel', [maxDeepLevel]))
-          saveStatus(space, resultDoc, docsTooLong, docsHierarchyTooLong, countAll, countLong, countLongHierarchy, maxDeepLevel, pagesImported, pagesNotImported, importedPageList, true)
+          saveStatus(space, activeProfileDoc, docsTooLong, docsHierarchyTooLong, countAll, countLong, countLongHierarchy, maxDeepLevel, pagesImported, pagesNotImported, importedPageList, true)
         } catch (e) {
           log.error(services.localization.render('confluence.migrator.spaceanalysis.save.error', [e.getMessage()]))
         }
@@ -326,11 +359,11 @@ ${docsHierarchyTooLongText}
         log.info(services.localization.render('confluence.migrator.spaceanalysis.result.missing', [pagesNotImported.size()]))
         log.info(services.localization.render('confluence.migrator.spaceanalysis.result.remaining', [importedPageList.size()]))
       }
-      saveStatus(space, resultDoc, docsTooLong, docsHierarchyTooLong, countAll, countLong, countLongHierarchy, maxDeepLevel, pagesImported, pagesNotImported, importedPageList, false)
+      saveStatus(space, activeProfileDoc, docsTooLong, docsHierarchyTooLong, countAll, countLong, countLongHierarchy, maxDeepLevel, pagesImported, pagesNotImported, importedPageList, false)
     } catch (e) {
       log.error(services.localization.render('confluence.migrator.spaceanalysis.result.error', [e.getMessage()]))
     }
-    log.info(services.localization.render('confluence.migrator.spaceanalysis.result.url', [resultDoc.getExternalURL()]))
+    log.info(services.localization.render('confluence.migrator.spaceanalysis.result.url', [activeProfileDoc.getExternalURL()]))
     services.progress.popLevel()
     services.progress.endStep()
   }
