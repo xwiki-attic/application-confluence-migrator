@@ -36,14 +36,17 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{job id="confluence/spaceanalysis" start="{{velocity~}~}$!{request.confirm}{{/velocity~}~}"}}
+  <content>{{job id="{{velocity}}$!request.jobId{{/velocity}}" start="{{velocity}}$!{request.confirm}{{/velocity}}"}}
 {{groovy}}
   import groovy.json.*
   import java.util.*
   import org.xwiki.logging.LogLevel
+  import org.apache.velocity.tools.generic.MathTool;
 
   log = services.logging.getLogger(doc.fullName)
   services.logging.setLevel(doc.fullName, LogLevel.INFO)
+
+  def mathtool = new MathTool()
 
   def space = null
   def baseUrl = null
@@ -62,23 +65,12 @@
   def max = 240
   def limit = 100
   def maxNewNameLength = 40
-  def start = 0
-  def nb = 1
   def docsTooLong = ""
   def docsHierarchyTooLong = ""
   def importCheck = false
 
   def activeProfileDoc = xwiki.getDocument(activeProfile)
 
-  if (request.start) {
-     start = Integer.parseInt(request.start)
-  }
-  if (request.nb) {
-     nb = Integer.parseInt(request.nb)
-  }
-  if (request.nbdocs) {
-     limit = Integer.parseInt(request.nbdocs)
-  }
   if (request.importcheck=="1") {
      importCheck = true
   }
@@ -90,10 +82,11 @@
     baseUrl += '/wiki'
   }
   def searchUrl = "${baseUrl}/rest/api/content?type=page&amp;spaceKey=${space}&amp;limit=${limit}"
-  if (request.ancestor)
-   searchUrl += "&amp;expand=ancestors&amp;start="
-  else
-   searchUrl += "&amp;start="
+  if (request.ancestor) {
+    searchUrl += "&amp;expand=ancestors&amp;start="
+  } else {
+    searchUrl += "&amp;start="
+  }
 
   def jsonSlurper = new JsonSlurper()
 
@@ -268,9 +261,10 @@
       importedPageList = getImportedPageList(space, log, xwiki)
     }
     services.progress.startStep()
-    services.progress.pushLevel(nb)
-    log.info(services.localization.render('confluence.migrator.spaceanalysis.loops', [nb]))
-    for (i in 1..nb) {
+    services.progress.pushLevel(1)
+    def start = 0
+    // Get 100 documents in each loop and run as many loops are needed to get all documents.
+    for (i in 1..1000000) {
       log.info(services.localization.render('confluence.migrator.spaceanalysis.loop', [i]))
       services.progress.startStep()
       def result = ""
@@ -348,6 +342,10 @@
        log.error(result)
       }
       services.progress.endStep()
+      // Exit from the loop whn a batch does not have 100 documents, meaning that there are no more documents to retrieve.
+      if (mathtool.mod(countAll, limit) &gt; 0) {
+        break
+      }
     }
     try {
       log.info(services.localization.render('confluence.migrator.spaceanalysis.result.pages', [countAll]))
