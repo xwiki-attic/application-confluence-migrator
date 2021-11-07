@@ -259,24 +259,13 @@ require(['jquery', 'xwiki-events-bridge', 'SmartWizard'], function($, xev, Smart
 
     // Leave step event
     confluenceMigrator.on("leaveStep", function(e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
-      if(stepDirection == 'forward') {
-        var data = {
-          'step'   : currentStepIndex++
-        }
-        var confluenceStep = $('#confluence-space');
-        if(confluenceStep &amp;&amp; confluenceStep.val()){
-          data['space'] = encodeURIComponent(confluenceStep.val());
-        }
-        $.ajax(new XWiki.Document('MigrationService', 'Confluence.Tools').getURL('get', 'outputSyntax=plain'), {
-          'data': data,
-          'method': 'POST',
-          'data-type': 'json'
-        }).done(function (data) {
-          //console.log('SUCCESS: Registered the state of the wizard.');
-        }).fail(function () {
-          //console.log('ERROR: Failed to register the state of the wizard.');
-        });
-      }
+      var serviceDoc = new XWiki.Document('MigratorService', 'Confluence.Migrator.Code');
+      var queryString = $.param({
+        'action': 'updateActiveStep',
+        'outputSyntax': 'plain',
+        'step': nextStepIndex
+      });
+      $.post(serviceDoc.getURL('get', queryString));
     });
 
     // Hide the previous button on the first step, even if it is disabled
