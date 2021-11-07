@@ -54,6 +54,13 @@
     #end
   #elseif("$!request.r" == '1')
     ## Reset migration
+    ## 1. Reset the active step and the steps taken properties in the current profile.
+    #set ($profileDoc = $xwiki.getDocument($activeProfile))
+    #set ($profileObj = $profileDoc.getObject('Confluence.Tools.MigrationProfileClass'))
+    #set ($discard = $profileObj.set('activeStep', ''))
+    #set ($discard = $profileObj.set('stepsTaken', ''))
+    #set ($discard = $xwiki.getXWiki().saveDocument($profileDoc.document, 'Update active and taken steps.', $xcontext.context))
+    ## 2. Clear the active profile value from the profiles homepage.
     #set ($updateActiveProfile = true)
     #set ($activeProfile = $NULL)
     #set ($activeProfileActionKey = 'reset')
