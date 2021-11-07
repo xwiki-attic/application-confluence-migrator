@@ -39,85 +39,38 @@
   <content>{{include reference="Confluence.Tools.Parameters" /}}
 
 {{velocity}}
-  == $services.localization.render('confluence.migrator.spaceanalysis.title') ==
+== $services.localization.render('confluence.migrator.spaceanalysis.title') ==
 
-  {{info}}$services.localization.render('confluence.migrator.spaceanalysis.description'){{/info}}
+{{info}}$services.localization.render('confluence.migrator.spaceanalysis.description'){{/info}}
 
-  #set ($spaceAnalysisURL = $xwiki.getURL($migratorHomePage, 'view', '#step-2'))
-  #if ($services.job.getJobStatus(['confluence', 'spaceanalysis']).state || "$!request.nb" != '')
-    == $services.localization.render('confluence.migrator.spaceanalysis.job') ==
-    {{include reference="Confluence.Tools.ConfluenceSpaceAnalysisJob" /}}
-  #end
-  #set ($nbdocs = '100')
-  #if ("$!request.nbdocs" != '')
-    #set ($nbdocs = $request.nbdocs)
-  #end
-  #set ($nb = '1')
-  #if ("$!request.nb" != '')
-    #set ($nb = $request.nb)
-  #end
-  #if ("$request.confirm" != 'true')
-    {{html clean=false}}
-      &lt;form action="$spaceAnalysisURL" class="xform"&gt;
-        &lt;dl&gt;
-          &lt;dt&gt;
-            &lt;label for="nbdocs"&gt;
-              $services.localization.render('confluence.migrator.spaceanalysis.nbdocs')
-            &lt;/label&gt;
-            &lt;span class="xHint"&gt;
-              $services.localization.render('confluence.migrator.spaceanalysis.nbdocshint')
-            &lt;/span&gt;
-          &lt;/dt&gt;
-          &lt;dd&gt;
-            &lt;input type="text" name="nbdocs" id="nbdocs" value="$escapetool.xml($nbdocs)" size="5" /&gt;
-          &lt;/dd&gt;
-          &lt;dt&gt;
-            &lt;label for="start"&gt;
-              $services.localization.render('confluence.migrator.spaceanalysis.start')
-            &lt;/label&gt;
-            &lt;span class="xHint"&gt;
-              $services.localization.render('confluence.migrator.spaceanalysis.starthint')
-            &lt;/span&gt;
-          &lt;/dt&gt;
-          &lt;dd&gt;
-            &lt;input type="text" name="start" id="start" value="0" size="5"  /&gt;
-          &lt;/dd&gt;
-          &lt;dt&gt;
-            &lt;label for="nb"&gt;
-              $services.localization.render('confluence.migrator.spaceanalysis.nbruns')
-            &lt;/label&gt;
-            &lt;span class="xHint"&gt;
-              $services.localization.render('confluence.migrator.spaceanalysis.nbrunshint')
-            &lt;/span&gt;
-          &lt;/dt&gt;
-          &lt;dd&gt;
-            &lt;input type="text" name="nb" id="nb" value="$escapetool.xml($nb)" size="5" /&gt;
-          &lt;/dd&gt;
-          &lt;dt&gt;&lt;dt&gt;
-          &lt;dd&gt;
-            &lt;label&gt;
-              &lt;input name="ancestor" type="checkbox" value="1" /&gt;
-              $services.localization.render('confluence.migrator.spaceanalysis.hierarchy')
-            &lt;/label&gt;
-          &lt;/dd&gt;
-          &lt;dt&gt;&lt;dt&gt;
-          &lt;dd&gt;
-            &lt;label&gt;
-              &lt;input name="importcheck" type="checkbox" value="1" /&gt;
-              $services.localization.render('confluence.migrator.spaceanalysis.importcheck')
-            &lt;/label&gt;
-          &lt;/dd&gt;
-        &lt;/dl&gt;
-        &lt;input name="confirm" type="hidden" value="true" /&gt;
-        &lt;input name="submit" type="submit" value="$services.localization.render('confluence.migrator.spaceanalysis.go')" class="button" /&gt;
-      &lt;/form&gt;
-    {{/html}}
-  #else
-    #set ($qs = $escapetool.url({
-      'nb' : $nb,
-      'nbdocs': $nbdocs
-    }))
-    $response.sendRedirect($doc.getURL('view', $qs))
-  #end
+#set ($spaceAnalysisURL = $xwiki.getURL($migratorHomePage, 'view', '#step-2'))
+#set ($jobId = "confluence/spaceanalysis/$datetool.date.time")
+{{html clean=false}}
+  &lt;form action="$spaceAnalysisURL" method="POST" class="xform"&gt;
+    &lt;dl&gt;
+      &lt;dt&gt;&lt;dt&gt;
+      &lt;dd&gt;
+        &lt;label&gt;
+          &lt;input name="ancestor" type="checkbox" value="1" /&gt;
+          $services.localization.render('confluence.migrator.spaceanalysis.hierarchy')
+        &lt;/label&gt;
+      &lt;/dd&gt;
+      &lt;dt&gt;&lt;dt&gt;
+      &lt;dd&gt;
+        &lt;label&gt;
+          &lt;input name="importcheck" type="checkbox" value="1" /&gt;
+          $services.localization.render('confluence.migrator.spaceanalysis.importcheck')
+        &lt;/label&gt;
+      &lt;/dd&gt;
+    &lt;/dl&gt;
+    &lt;input name="jobId" type="hidden" value="$escapetool.xml($jobId)"&gt;
+    &lt;input name="confirm" type="hidden" value="true" /&gt;
+    &lt;input name="submit" type="submit" value="$services.localization.render('confluence.migrator.spaceanalysis.go')" class="button" /&gt;
+  &lt;/form&gt;
+{{/html}}
+#if ("$!request.confirm" == 'true')
+  == $services.localization.render('confluence.migrator.spaceanalysis.job') ==
+  {{include reference="Confluence.Tools.ConfluenceSpaceAnalysisJob" /}}
+#end
 {{/velocity}}</content>
 </xwikidoc>
