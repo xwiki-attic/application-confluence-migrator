@@ -289,10 +289,15 @@ require(['jquery', 'xwiki-events-bridge', 'SmartWizard'], function($, xev, Smart
     // Leave step event
     confluenceMigrator.on("leaveStep", function(e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
       var serviceDoc = new XWiki.Document('MigratorService', 'Confluence.Migrator.Code');
+      var isForward = false;
+      if (stepDirection == 'forward') {
+        isForward = true;
+      }
       var queryString = $.param({
-        'action': 'updateActiveStep',
+        'action': 'updateSteps',
         'outputSyntax': 'plain',
-        'step': nextStepIndex
+        'step': nextStepIndex,
+        'isForward': isForward
       });
       $.post(serviceDoc.getURL('get', queryString));
     });
