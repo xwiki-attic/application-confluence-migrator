@@ -39,18 +39,11 @@
   <content>{{groovy}}
 println """= ${services.localization.render('confluence.migrator.postImportFixes.detectLongPages')} ="""
 def escapetool = new org.xwiki.velocity.tools.EscapeTool()
-def space = null
-def activeProfileDoc = null
-def activeProfileObj = xwiki.getDocument('Confluence.Migrator.Profiles.WebHome').getObject('Confluence.Tools.ActiveMigrationProfileClass')
-if (activeProfileObj != null) {
-  def activeProfile = activeProfileObj.getProperty('profile').value
-  if(activeProfile) {
-    activeProfileDoc = xwiki.getDocument(activeProfile);
-    def profileObj = xwiki.getDocument(activeProfile).getObject('Confluence.Tools.MigrationProfileClass')
-    space = profileObj.getProperty('space').value
-  }
-}
-def nb = 10
+
+def activeProfile = services.confluencemigrator.profile.activeProfile
+def activeProfileDoc = xwiki.getDocument(activeProfile)
+def space = activeProfileDoc.getValue('space')
+def nb = activeProfileDoc.getValue('totalPages')
 def maxlength = 30
 if (request.space)
  space = request.space

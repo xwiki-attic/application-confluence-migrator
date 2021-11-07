@@ -42,6 +42,12 @@
 
   def maxLength = 25
   def log = services.logging.getLogger(doc.fullName)
+
+  def activeProfile = services.confluencemigrator.profile.activeProfile
+  def activeProfileDoc = xwiki.getDocument(activeProfile)
+  def space = activeProfileDoc.getValue('space')
+  def nb = activeProfileDoc.getValue('totalPages')
+
   public getNameProposal(name, space, log, newNameList, maxLength) {
     def splitname = name.replaceAll("/","_").replaceAll("[.]","_").replaceAll(" _ ", "_").replaceAll("[^\\dA-Za-z_ ]"," ").replaceAll('_', " ")replaceAll("\\s+"," ").split(' ')
     def newname = splitname[0]
@@ -137,8 +143,6 @@
    }
 
   try {
-   def space = 'KHNYG';
-   def nb = 1000;
    def testRun = 1;
 
    if (request.nb) {
@@ -159,44 +163,31 @@
 {{velocity}}
 = $services.localization.render('confluence.migrator.postImportFixes.longNamesHandling') =
 #if ("$request.confirm" != 'true')
-  #set ($space = '')
-  #set ($activeProfileObj = $xwiki.getDocument('Confluence.Migrator.Profiles.WebHome').getObject('Confluence.Tools.ActiveMigrationProfileClass'))
-  #if ($activeProfileObj)
-    #set ($activeProfile = $activeProfileObj.getValue('profile'))
-    #if ($activeProfile)
-      #set ($activeProfileDoc = $xwiki.getDocument($activeProfile))
-      #set ($profileObj = $xwiki.getDocument($activeProfile).getObject('Confluence.Tools.MigrationProfileClass'))
-      #set ($space = $profileObj.getValue('space'))
-    #end
- #end
- #if ($request.space)
-  #set ($space = $request.space)
- #end
- #set($nb = "100")
- #if($request.nb)
-  #set($nb = $request.nb)
- #end
-{{html clean=false}}
-&lt;form action="" method="post" class="xform"&gt;
-&lt;dl&gt;
-  &lt;dt&gt;
-    &lt;label for="space"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.space'))&lt;/label&gt;
-    &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.space.hint'))&lt;/span&gt;
-  &lt;/dt&gt;
-  &lt;dd&gt;
-    &lt;input type="text" name="space" value="$escapetool.xml($space)" /&gt;
-  &lt;/dd&gt;
-  &lt;dt&gt;
-    &lt;label for="nb"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.pagesnb'))&lt;/label&gt;
-    &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.pagesnb.hint'))&lt;/span&gt;
-  &lt;/dt&gt;
-  &lt;dd&gt;
-    &lt;input type="text" name="nb" value="$escapetool.xml($nb)" size="10" /&gt;
-  &lt;/dd&gt;
-&lt;/dl&gt;
-&lt;input name="submit" type="submit" value="Go" class="button" /&gt;
-&lt;/form&gt;
-{{/html}}
+  #set ($activeProfile = $services.confluencemigrator.profile.activeProfile)
+  #set ($activeProfileDoc = $xwiki.getDocument($activeProfile))
+  #set ($space = $activeProfileDoc.getValue('space'))
+  #set ($nb = $activeProfileDoc.getValue('totalPages'))
+  {{html clean=false}}
+    &lt;form action="" method="post" class="xform"&gt;
+      &lt;dl&gt;
+        &lt;dt&gt;
+          &lt;label for="space"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.space'))&lt;/label&gt;
+          &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.space.hint'))&lt;/span&gt;
+        &lt;/dt&gt;
+        &lt;dd&gt;
+          &lt;input type="text" name="space" value="$escapetool.xml($space)" /&gt;
+        &lt;/dd&gt;
+        &lt;dt&gt;
+          &lt;label for="nb"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.pagesnb'))&lt;/label&gt;
+          &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('confluence.migrator.parents.pagesnb.hint'))&lt;/span&gt;
+        &lt;/dt&gt;
+        &lt;dd&gt;
+          &lt;input type="text" name="nb" value="$escapetool.xml($nb)" size="10" /&gt;
+        &lt;/dd&gt;
+      &lt;/dl&gt;
+      &lt;input name="submit" type="submit" value="Go" class="button" /&gt;
+      &lt;/form&gt;
+  {{/html}}
 #else
  $response.sendRedirect($doc.getURL("view"))
 #end
