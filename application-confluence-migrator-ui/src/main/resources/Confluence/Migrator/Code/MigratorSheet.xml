@@ -57,6 +57,7 @@
     ## 1. Reset the active step and the steps taken properties in the current profile.
     #set ($profileDoc = $xwiki.getDocument($activeProfile))
     #set ($profileObj = $profileDoc.getObject('Confluence.Tools.MigrationProfileClass'))
+    #set ($activeStep = $profileObj.getValue('activeStep'))
     #set ($discard = $profileObj.set('activeStep', ''))
     #set ($discard = $profileObj.set('stepsTaken', ''))
     #set ($discard = $xwiki.getXWiki().saveDocument($profileDoc.document, 'Update active and taken steps.', $xcontext.context))
@@ -64,6 +65,27 @@
     #set ($updateActiveProfile = true)
     #set ($activeProfile = $NULL)
     #set ($activeProfileActionKey = 'reset')
+    ## 3. Remove/Revert to previous version the created/updated documents.
+    ## Perform the following operations only if documents were updated (import or other processing).
+    #if ($activeStep &gt; 3)
+      #set ($statement = 'from doc.object(Confluence.Code.ConfluencePageClass) as confluencePage where confluencePage.space = :space')
+      #set ($results = $services.query.xwql($statement).bindValue('space', $profileDoc.getValue('space')).execute())
+      #set ($criteria = $xwiki.criteriaService.revisionCriteriaFactory.createRevisionCriteria())
+      #set ($range = $xwiki.criteriaService.rangeFactory.createTailRange(2))
+      #set ($discard = $criteria.setRange($range))
+      #set ($discard = $criteria.setIncludeMinorVersions(true))
+      #foreach ($result in $results)
+        #set ($confluenceDoc = $xwiki.getDocument($result))
+        #if ($confluenceDoc.version == '1.1')
+          ## Delete document.
+          #set ($discard = $xwiki.getXWiki().delete($confluenceDoc.document, $xcontext.context))
+        #else
+          ## Revert to previous version.
+          #set ($revision = $confluenceDoc.getRevisions($criteria).get(0))
+          #set ($discard = $xwiki.getXWiki().rollback($confluenceDoc.document, $revision, $xcontext.context))
+        #end
+      #end
+    #end
   #end
   #if ($updateActiveProfile)
     #set ($discard = $migratorProfilesObj.set('profile', $activeProfile))
