@@ -36,7 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{job id="{{velocity}}$!request.jobId{{/velocity}}" start="{{velocity}}$!{request.confirm}{{/velocity}}"}}
+  <content>{{job id="confluence/spaceanalysis" start="{{velocity~}~}$!{request.confirm}{{/velocity~}~}"}}
 {{groovy}}
   import groovy.json.*
   import java.util.*
@@ -60,15 +60,25 @@
   }
 
   def max = 240
-  // Get all results by setting a limit that will not be reached.
-  def limit = 999999
+  def limit = 100
   def maxNewNameLength = 40
+  def start = 0
+  def nb = 1
   def docsTooLong = ""
   def docsHierarchyTooLong = ""
   def importCheck = false
 
   def activeProfileDoc = xwiki.getDocument(activeProfile)
 
+  if (request.start) {
+     start = Integer.parseInt(request.start)
+  }
+  if (request.nb) {
+     nb = Integer.parseInt(request.nb)
+  }
+  if (request.nbdocs) {
+     limit = Integer.parseInt(request.nbdocs)
+  }
   if (request.importcheck=="1") {
      importCheck = true
   }
@@ -80,9 +90,10 @@
     baseUrl += '/wiki'
   }
   def searchUrl = "${baseUrl}/rest/api/content?type=page&amp;spaceKey=${space}&amp;limit=${limit}"
-  if (request.ancestor) {
-    searchUrl += "&amp;expand=ancestors"
-  }
+  if (request.ancestor)
+   searchUrl += "&amp;expand=ancestors&amp;start="
+  else
+   searchUrl += "&amp;start="
 
   def jsonSlurper = new JsonSlurper()
 
@@ -256,82 +267,88 @@
     if (importCheck) {
       importedPageList = getImportedPageList(space, log, xwiki)
     }
-
     services.progress.startStep()
-    def result = ""
-    try {
-      log.info(services.localization.render('confluence.migrator.spaceanalysis.infourl', [searchUrl]))
-      result = getContent(searchUrl, username, token)
-      def pages = jsonSlurper.parseText(result)
+    services.progress.pushLevel(nb)
+    log.info(services.localization.render('confluence.migrator.spaceanalysis.loops', [nb]))
+    for (i in 1..nb) {
+      log.info(services.localization.render('confluence.migrator.spaceanalysis.loop', [i]))
+      services.progress.startStep()
+      def result = ""
+      try {
+        def url = searchUrl + start
+        log.info(services.localization.render('confluence.migrator.spaceanalysis.infourl', [url]))
+        result = getContent(url, username, token)
+        def pages = jsonSlurper.parseText(result)
 
-      log.info(services.localization.render('confluence.migrator.spaceanalysis.pagesfound', [pages.results.size()]))
-      for (page in pages.results) {
-        def ptitle = page.title
-        countAll++
-        if (importCheck) {
-          try {
-            if (importedPageList.get(ptitle)) {
-              log.info(services.localization.render('confluence.migrator.spaceanalysis.pagefound', [ptitle]))
-              pagesImported.add(ptitle)
-              importedPageList.remove(ptitle)
-            } else {
-              if (page.status=="archived") {
-                log.warn(services.localization.render('confluence.migrator.spaceanalysis.pagearchived', [ptitle]))
+        log.info(services.localization.render('confluence.migrator.spaceanalysis.pagesfound', [pages.results.size()]))
+        for (page in pages.results) {
+          def ptitle = page.title
+          countAll++
+          if (importCheck) {
+            try {
+              if (importedPageList.get(ptitle)) {
+                log.info(services.localization.render('confluence.migrator.spaceanalysis.pagefound', [ptitle]))
+                pagesImported.add(ptitle)
+                importedPageList.remove(ptitle)
               } else {
-                log.warn(services.localization.render('confluence.migrator.spaceanalysis.pagenotfound', [ptitle]))
-                pagesNotImported.add(ptitle)
-                def docUrl = baseUrl + page._links.webui
-                pagesNotImportedOutput += "* ${ptitle} ${docUrl}\n"
+                if (page.status=="archived") {
+                  log.warn(services.localization.render('confluence.migrator.spaceanalysis.pagearchived', [ptitle]))
+                } else {
+                  log.warn(services.localization.render('confluence.migrator.spaceanalysis.pagenotfound', [ptitle]))
+                  pagesNotImported.add(ptitle)
+                  def docUrl = baseUrl + page._links.webui
+                  pagesNotImportedOutput += "* ${ptitle} ${docUrl}\n"
+                }
               }
+            } catch (e) {
+              log.error(services.localization.render('confluence.migrator.spaceanalysis.pagecheckerror', [ptitle, e.getMessage()]))
+            }
+          }
+          try {
+            if (ptitle.size() &gt; max) {
+              countLong++
+              def docUrl = baseUrl + page._links.webui
+              docsTooLong += "* ${ptitle} (${ptitle.size()}) ${docUrl}\n"
+              log.warn(services.localization.render('confluence.migrator.spaceanalysis.longpagename', [ptitle.size(), ptitle, docUrl]))
+            }
+
+            if (request.ancestor) {
+              def fullSize = space.size() + 8 + getNameProposalSize(ptitle, log, newNameList, maxNewNameLength)
+              def deepLevel = 1
+              for (parent in page.ancestors) {
+                deepLevel++
+                fullSize += 1 + getNameProposalSize(parent.title, log, newNameList, maxNewNameLength)
+              }
+              if (fullSize &gt; max) {
+                countLongHierarchy++
+                def docUrl = baseUrl + page._links.webui
+                docsHierarchyTooLong += "* ${ptitle} (${fullSize}) ${docUrl}\n"
+                log.warn(services.localization.render('confluence.migrator.spaceanalysis.longfullhierarchy', [fullSize, ptitle, docUrl]))
+              }
+              if (deepLevel &gt; maxDeepLevel)
+                maxDeepLevel = deepLevel
+              log.debug(services.localization.render('confluence.migrator.spaceanalysis.fullnamesize', [ptitle, fullSize, deepLevel]))
             }
           } catch (e) {
             log.error(services.localization.render('confluence.migrator.spaceanalysis.pagecheckerror', [ptitle, e.getMessage()]))
           }
         }
+        start += limit
         try {
-          if (ptitle.size() &gt; max) {
-            countLong++
-            def docUrl = baseUrl + page._links.webui
-            docsTooLong += "* ${ptitle} (${ptitle.size()}) ${docUrl}\n"
-            log.warn(services.localization.render('confluence.migrator.spaceanalysis.longpagename', [ptitle.size(), ptitle, docUrl]))
-          }
-
-          if (request.ancestor) {
-            def fullSize = space.size() + 8 + getNameProposalSize(ptitle, log, newNameList, maxNewNameLength)
-            def deepLevel = 1
-            for (parent in page.ancestors) {
-              deepLevel++
-              fullSize += 1 + getNameProposalSize(parent.title, log, newNameList, maxNewNameLength)
-            }
-            if (fullSize &gt; max) {
-              countLongHierarchy++
-              def docUrl = baseUrl + page._links.webui
-              docsHierarchyTooLong += "* ${ptitle} (${fullSize}) ${docUrl}\n"
-              log.warn(services.localization.render('confluence.migrator.spaceanalysis.longfullhierarchy', [fullSize, ptitle, docUrl]))
-            }
-            if (deepLevel &gt; maxDeepLevel)
-              maxDeepLevel = deepLevel
-            log.debug(services.localization.render('confluence.migrator.spaceanalysis.fullnamesize', [ptitle, fullSize, deepLevel]))
-          }
+          log.info(services.localization.render('confluence.migrator.spaceanalysis.pages', [countAll]))
+          log.info(services.localization.render('confluence.migrator.spaceanalysis.longpagenames', [countLong]))
+          log.info(services.localization.render('confluence.migrator.spaceanalysis.longhierarchies', [countLongHierarchy]))
+          log.info(services.localization.render('confluence.migrator.spaceanalysis.maxdeeplevel', [maxDeepLevel]))
+          saveStatus(space, activeProfileDoc, docsTooLong, docsHierarchyTooLong, countAll, countLong, countLongHierarchy, maxDeepLevel, pagesImported, pagesNotImported, importedPageList, true)
         } catch (e) {
-          log.error(services.localization.render('confluence.migrator.spaceanalysis.pagecheckerror', [ptitle, e.getMessage()]))
+          log.error(services.localization.render('confluence.migrator.spaceanalysis.save.error', [e.getMessage()]))
         }
+      } catch (e2) {
+       log.error(services.localization.render('confluence.migrator.spaceanalysis.data.error', [e2.getMessage()]))
+       log.error(result)
       }
-      try {
-        log.info(services.localization.render('confluence.migrator.spaceanalysis.pages', [countAll]))
-        log.info(services.localization.render('confluence.migrator.spaceanalysis.longpagenames', [countLong]))
-        log.info(services.localization.render('confluence.migrator.spaceanalysis.longhierarchies', [countLongHierarchy]))
-        log.info(services.localization.render('confluence.migrator.spaceanalysis.maxdeeplevel', [maxDeepLevel]))
-        saveStatus(space, activeProfileDoc, docsTooLong, docsHierarchyTooLong, countAll, countLong, countLongHierarchy, maxDeepLevel, pagesImported, pagesNotImported, importedPageList, true)
-      } catch (e) {
-        log.error(services.localization.render('confluence.migrator.spaceanalysis.save.error', [e.getMessage()]))
-      }
-    } catch (e2) {
-     log.error(services.localization.render('confluence.migrator.spaceanalysis.data.error', [e2.getMessage()]))
-     log.error(result)
+      services.progress.endStep()
     }
-    services.progress.endStep()
-
     try {
       log.info(services.localization.render('confluence.migrator.spaceanalysis.result.pages', [countAll]))
       log.info(services.localization.render('confluence.migrator.spaceanalysis.result.longpagenames', [countLong]))
