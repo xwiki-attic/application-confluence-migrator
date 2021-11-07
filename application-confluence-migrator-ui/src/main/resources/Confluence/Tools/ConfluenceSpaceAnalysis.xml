@@ -63,7 +63,7 @@
         &lt;/label&gt;
       &lt;/dd&gt;
     &lt;/dl&gt;
-    &lt;input name="jobId" type="hidden" value="$escapetool.xml($jobId)"&gt;
+    &lt;input name="jobId" type="hidden" value="$escapetool.xml($jobId)" /&gt;
     &lt;input name="confirm" type="hidden" value="true" /&gt;
     &lt;input name="submit" type="submit" value="$services.localization.render('confluence.migrator.spaceanalysis.go')" class="button" /&gt;
   &lt;/form&gt;
