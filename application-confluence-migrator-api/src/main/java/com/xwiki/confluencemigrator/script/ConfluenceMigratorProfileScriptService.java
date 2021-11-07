@@ -103,6 +103,15 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
     }
 
     /**
+     * Set the total COnfluence pages number counted in the Space Analyze step.
+     *
+     * @param totalPages the number to be set in profile
+     */
+    public void setTotalPageNumber(long totalPages) {
+        profile.setTotalPageNumber(totalPages);
+    }
+
+    /**
      * Get the path of the attachment in the file system.
      *
      * @param fileName the name of the uploaded file

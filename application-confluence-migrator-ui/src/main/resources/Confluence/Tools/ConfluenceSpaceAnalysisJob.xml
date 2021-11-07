@@ -214,6 +214,8 @@
 * ${skippedNbText}
 * ${remainingNbText}
 """
+    // Set the total number of Confluence pages analyzed in the current profile' space.
+    services.confluencemigrator.profile.setTotalPageNumber(countAll)
 
     def parentFullName = activeProfileDoc.fullName
     def spaceRef = activeProfileDoc.documentReference.lastSpaceReference;

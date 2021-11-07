@@ -69,4 +69,11 @@ public interface ConfluenceMigratorProfile
      */
     String getFilePath(String fileName);
 
+    /**
+     * Set the total COnfluence pages number counted in the Space Analyze step.
+     *
+     * @param totalPages the number to be set in profile
+     */
+    void setTotalPageNumber(long totalPages);
+
 }

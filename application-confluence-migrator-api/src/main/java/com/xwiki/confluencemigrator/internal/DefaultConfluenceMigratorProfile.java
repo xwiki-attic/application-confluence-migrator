@@ -190,4 +190,20 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
         }
         return null;
     }
+
+    @Override
+    public void setTotalPageNumber(long totalPages)
+    {
+        XWikiContext context = contextProvider.get();
+        XWiki xwiki = context.getWiki();
+
+        try {
+            XWikiDocument profileDoc = xwiki.getDocument(resolver.resolve(getActiveProfile()), context);
+            BaseObject profileObj = profileDoc.getXObject(PROFILE_CLASS_REFERENCE);
+            profileObj.setLongValue("totalPages", totalPages);
+            context.getWiki().saveDocument(profileDoc, "Set the total Confluence pages number.", context);
+        } catch (XWikiException e) {
+            logger.error("Failed to set the total Confluence pages number.", e);
+        }
+    }
 }
