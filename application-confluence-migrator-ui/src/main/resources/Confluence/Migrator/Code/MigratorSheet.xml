@@ -54,18 +54,10 @@
     #end
   #elseif("$!request.r" == '1')
     ## Reset migration
-    ## 1. Reset the active step and the steps taken properties in the current profile.
     #set ($profileDoc = $xwiki.getDocument($activeProfile))
     #set ($profileObj = $profileDoc.getObject('Confluence.Tools.MigrationProfileClass'))
     #set ($activeStep = $profileObj.getValue('activeStep'))
-    #set ($discard = $profileObj.set('activeStep', ''))
-    #set ($discard = $profileObj.set('stepsTaken', ''))
-    #set ($discard = $xwiki.getXWiki().saveDocument($profileDoc.document, 'Update active and taken steps.', $xcontext.context))
-    ## 2. Clear the active profile value from the profiles homepage.
-    #set ($updateActiveProfile = true)
-    #set ($activeProfile = $NULL)
-    #set ($activeProfileActionKey = 'reset')
-    ## 3. Remove/Revert to previous version the created/updated documents.
+    ## 1. Remove/Revert to previous version the created/updated documents.
     ## Perform the following operations only if documents were updated (import or other processing).
     #if ($activeStep &gt; 3)
       #set ($statement = 'from doc.object(Confluence.Code.ConfluencePageClass) as confluencePage where confluencePage.space = :space')
@@ -86,6 +78,14 @@
         #end
       #end
     #end
+    ## 2. Reset the active step and the steps taken properties in the current profile.
+    #set ($discard = $profileObj.set('activeStep', ''))
+    #set ($discard = $profileObj.set('stepsTaken', ''))
+    #set ($discard = $xwiki.getXWiki().saveDocument($profileDoc.document, 'Update active and taken steps.', $xcontext.context))
+    ## 3. Clear the active profile value from the profiles homepage.
+    #set ($updateActiveProfile = true)
+    #set ($activeProfile = $NULL)
+    #set ($activeProfileActionKey = 'reset')
   #end
   #if ($updateActiveProfile)
     #set ($discard = $migratorProfilesObj.set('profile', $activeProfile))

@@ -59,15 +59,19 @@
     $jsontool.serialize({'filePath': $services.confluencemigrator.profile.getFilePath($request.fileName)})
   #end
   #if ($request.action == 'updateSteps')
-    #set ($step = $request.step)
+    #set ($step = $numbertool.toNumber($request.step).longValue())
     #set ($profileDoc = $xwiki.getDocument($services.confluencemigrator.profile.activeProfile))
     #set ($profileObj = $profileDoc.getObject('Confluence.Tools.MigrationProfileClass'))
     #set ($discard = $profileObj.set('activeStep', $step))
     #set ($stepsTaken = $profileObj.getValue('stepsTaken'))
+    #if ("$!stepsTaken" == '')
+      #set ($stepsTaken = 0)
+    #end
+    #set ($stepsTaken = $numbertool.toNumber($stepsTaken).longValue())
     #if ($request.isForward &amp;&amp; $step &gt; $stepsTaken)
       #set ($discard = $profileObj.set('stepsTaken', $step))
     #end
-    #set ($discard = $profileDoc.save('Update profile steps.'))
+    #set ($discard = $xwiki.getXWiki().saveDocument($profileDoc.document, 'Update profile steps.', $xcontext.context))
   #end
 #end
 {{/velocity}}</content>
