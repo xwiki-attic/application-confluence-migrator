@@ -46,6 +46,8 @@ import org.xwiki.store.filesystem.internal.FilesystemStoreTools;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.criteria.impl.RangeFactory;
+import com.xpn.xwiki.criteria.impl.RevisionCriteria;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
@@ -59,10 +61,28 @@ import com.xwiki.confluencemigrator.ConfluenceMigratorProfile;
 @Singleton
 public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfile
 {
+    private static final String STEPS_TAKEN = "stepsTaken";
+
+    private static final String ACTIVE_STEP = "activeStep";
+
+    private static final String SPACE = "space";
+
+    private static final String PROFILE = "profile";
+
+    private static final String CONFLUENCE = "Confluence";
+
+    private static final String TOOLS = "Tools";
+
     private static final String WIKI_ENDING = "/wiki";
 
     private static final LocalDocumentReference PROFILE_CLASS_REFERENCE =
-        new LocalDocumentReference(Arrays.asList("Confluence", "Tools"), "MigrationProfileClass");
+        new LocalDocumentReference(Arrays.asList(CONFLUENCE, TOOLS), "MigrationProfileClass");
+
+    private static final LocalDocumentReference PROFILES_HOMEPAGE_REFERENCE =
+        new LocalDocumentReference(Arrays.asList(CONFLUENCE, "Migrator", "Profiles"), "WebHome");
+
+    private static final LocalDocumentReference ACTIVE_PROFILE_CLASS_REFERENCE =
+        new LocalDocumentReference(Arrays.asList(CONFLUENCE, TOOLS), "ActiveMigrationProfileClass");
 
     @Inject
     private DocumentReferenceResolver<String> resolver;
@@ -88,7 +108,7 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
         try {
             profileDoc = context.getWiki().getDocument(profileRef, context);
             BaseObject profileObj = profileDoc.getXObject(PROFILE_CLASS_REFERENCE);
-            String space = profileObj.getStringValue("space");
+            String space = profileObj.getStringValue(SPACE);
             String baseURL = profileObj.getStringValue("url");
             String username = profileObj.getStringValue("username");
             String token = profileObj.getStringValue("token");
@@ -125,13 +145,11 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
     {
         XWikiContext context = contextProvider.get();
         XWiki xwiki = context.getWiki();
-        DocumentReference profilesHomePageRef = resolver.resolve("Confluence.Migrator.Profiles.WebHome");
         try {
-            XWikiDocument profilesHomePageDoc = xwiki.getDocument(profilesHomePageRef, context);
-            DocumentReference activeProfileClassRef = resolver.resolve("Confluence.Tools.ActiveMigrationProfileClass");
-            BaseObject activeProfileObj = profilesHomePageDoc.getXObject(activeProfileClassRef);
+            XWikiDocument profilesHomePageDoc = xwiki.getDocument(PROFILES_HOMEPAGE_REFERENCE, context);
+            BaseObject activeProfileObj = profilesHomePageDoc.getXObject(ACTIVE_PROFILE_CLASS_REFERENCE);
             if (activeProfileObj != null) {
-                return activeProfileObj.getStringValue("profile");
+                return activeProfileObj.getStringValue(PROFILE);
             }
         } catch (XWikiException e) {
             logger.error("Failed to get active profile.", e);
@@ -204,6 +222,83 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
             context.getWiki().saveDocument(profileDoc, "Set the total Confluence pages number.", context);
         } catch (XWikiException e) {
             logger.error("Failed to set the total Confluence pages number.", e);
+        }
+    }
+
+    @Override
+    public void resetMigration()
+    {
+        XWikiContext context = contextProvider.get();
+        XWiki xwiki = context.getWiki();
+
+        try {
+            XWikiDocument profileDoc = xwiki.getDocument(resolver.resolve(getActiveProfile()), context);
+            BaseObject profileObj = profileDoc.getXObject(PROFILE_CLASS_REFERENCE);
+            // Remove document if it has just been created or revert it to the previous version.
+            clearConfluenceDocuments(profileDoc, profileObj, context, xwiki);
+            // Clear steps in the profile document.
+            profileObj.setLongValue(ACTIVE_STEP, 0);
+            profileObj.setLongValue(STEPS_TAKEN, 0);
+
+            XWikiDocument profilesHomePageDoc = xwiki.getDocument(PROFILES_HOMEPAGE_REFERENCE, context);
+            BaseObject activeProfileObj = profilesHomePageDoc.getXObject(ACTIVE_PROFILE_CLASS_REFERENCE);
+            if (activeProfileObj != null) {
+                activeProfileObj.setStringValue(PROFILE, "");
+                context.getWiki().saveDocument(profilesHomePageDoc, "Reset the migration.", context);
+            }
+        } catch (XWikiException e) {
+            logger.error("Failed to reset the migration.", e);
+        }
+    }
+
+    private void clearConfluenceDocuments(XWikiDocument profileDoc, BaseObject profileObj, XWikiContext context,
+        XWiki xwiki)
+    {
+        long activeStep = profileObj.getLongValue(ACTIVE_STEP);
+
+        // Step number 3 corresponds to the import operation, so we have to be able to delete/rollback after an import.
+        if (activeStep >= 3) {
+            StringBuilder statement =
+                new StringBuilder("from doc.object(Confluence.Code.ConfluencePageClass) as confluencePage");
+            statement.append(" where confluencePage.space = :space");
+            try {
+                Query query = this.queryManager.createQuery(statement.toString(), Query.XWQL);
+                query.bindValue(SPACE, profileObj.getStringValue(SPACE));
+                List<String> results = query.execute();
+
+                if (results.size() > 0) {
+                    RevisionCriteria criteria =
+                        xwiki.getCriteriaService(context).getRevisionCriteriaFactory().createRevisionCriteria();
+                    criteria.setRange(RangeFactory.createTailRange(2));
+                    criteria.setIncludeMinorVersions(true);
+
+                    int countDeleted = 0;
+                    int countReverted = 0;
+
+                    for (String result : results) {
+                        try {
+                            XWikiDocument confluenceDoc = xwiki.getDocument(resolver.resolve(result), context);
+                            if ("1.1".equals(confluenceDoc.getVersion())) {
+                                xwiki.deleteDocument(confluenceDoc, true, context);
+                                countDeleted++;
+                                logger.info("Deleted Confluence document [{}].", result);
+                            } else {
+                                String revision = confluenceDoc.getRevisions(criteria, context).get(0);
+                                xwiki.rollback(confluenceDoc, revision, context);
+                                countReverted++;
+                                logger.info("Reverted Confluence document [{}] to version [{}]", result, revision);
+                            }
+                        } catch (XWikiException e) {
+                            logger.error("Failed to clean the Confluence document [{}].", result, e);
+                        }
+                    }
+
+                    logger.info("Deleted Confluence documents: [{}]", countDeleted);
+                    logger.info("Reverted Confluence documents: [{}]", countReverted);
+                }
+            } catch (QueryException e) {
+                logger.error("Failed to get Confluence documents.", e);
+            }
         }
     }
 }

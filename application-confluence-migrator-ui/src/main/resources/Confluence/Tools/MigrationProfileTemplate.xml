@@ -58,7 +58,7 @@
         <name>activeStep</name>
         <number>5</number>
         <numberType>long</numberType>
-        <prettyName>Active Step</prettyName>
+        <prettyName>Active step</prettyName>
         <size>30</size>
         <unmodifiable>0</unmodifiable>
         <validationMessage/>
@@ -109,6 +109,20 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.PasswordClass</classType>
       </token>
+      <totalPages>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>totalPages</name>
+        <number>7</number>
+        <numberType>long</numberType>
+        <prettyName>Total Confluence pages</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+      </totalPages>
       <url>
         <customDisplay/>
         <disabled>0</disabled>
@@ -149,6 +163,9 @@
     </property>
     <property>
       <token/>
+    </property>
+    <property>
+      <totalPages/>
     </property>
     <property>
       <url/>

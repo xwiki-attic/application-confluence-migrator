@@ -76,4 +76,9 @@ public interface ConfluenceMigratorProfile
      */
     void setTotalPageNumber(long totalPages);
 
+    /**
+     * Reset migration and revert all the actions.
+     */
+    void resetMigration();
+
 }

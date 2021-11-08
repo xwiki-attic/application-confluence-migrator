@@ -122,6 +122,13 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
         return profile.getFilePath(fileName);
     }
 
+    /**
+     * Reset migration and revert all the actions.
+     */
+    public void resetMigration() {
+        profile.resetMigration();
+    }
+
     @Override
     protected String getErrorKey()
     {
