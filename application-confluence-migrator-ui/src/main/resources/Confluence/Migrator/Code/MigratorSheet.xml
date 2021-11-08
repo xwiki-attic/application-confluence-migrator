@@ -51,6 +51,10 @@
       #set ($updateActiveProfile = true)
       #set ($activeProfile = $request.p)
       #set ($activeProfileActionKey = 'update')
+      #set ($profileDoc = $xwiki.getDocument($activeProfile))
+      #set ($profileObj = $profileDoc.getObject('Confluence.Tools.MigrationProfileClass'))
+      #set ($discard = $profileObj.set('migrationStartDate', $datetool.date))
+      #set ($discard = $xwiki.getXWiki().saveDocument($profileDoc.document, 'Set the migration start date.', $xcontext.context))
     #end
   #elseif("$!request.r" == '1')
     ## Reset migration

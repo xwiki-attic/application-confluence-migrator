@@ -25,6 +25,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -61,6 +62,8 @@ import com.xwiki.confluencemigrator.ConfluenceMigratorProfile;
 @Singleton
 public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfile
 {
+    private static final String MIGRATION_START_DATE = "migrationStartDate";
+
     private static final String STEPS_TAKEN = "stepsTaken";
 
     private static final String ACTIVE_STEP = "activeStep";
@@ -236,9 +239,10 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
             BaseObject profileObj = profileDoc.getXObject(PROFILE_CLASS_REFERENCE);
             // Remove document if it has just been created or revert it to the previous version.
             clearConfluenceDocuments(profileDoc, profileObj, context, xwiki);
-            // Clear steps in the profile document.
+            // Clear steps and migration start date in the profile document.
             profileObj.setLongValue(ACTIVE_STEP, 0);
             profileObj.setLongValue(STEPS_TAKEN, 0);
+            profileObj.setDateValue(MIGRATION_START_DATE, null);
 
             XWikiDocument profilesHomePageDoc = xwiki.getDocument(PROFILES_HOMEPAGE_REFERENCE, context);
             BaseObject activeProfileObj = profilesHomePageDoc.getXObject(ACTIVE_PROFILE_CLASS_REFERENCE);
@@ -272,13 +276,16 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
                     criteria.setRange(RangeFactory.createTailRange(2));
                     criteria.setIncludeMinorVersions(true);
 
+                    Date migrationStartDate = profileObj.getDateValue(MIGRATION_START_DATE);
+
                     int countDeleted = 0;
                     int countReverted = 0;
 
                     for (String result : results) {
                         try {
                             XWikiDocument confluenceDoc = xwiki.getDocument(resolver.resolve(result), context);
-                            if ("1.1".equals(confluenceDoc.getVersion())) {
+                            if ("1.1".equals(confluenceDoc.getVersion())
+                                || confluenceDoc.getContentUpdateDate().after(migrationStartDate)) {
                                 xwiki.deleteDocument(confluenceDoc, true, context);
                                 countDeleted++;
                                 logger.info("Deleted Confluence document [{}].", result);

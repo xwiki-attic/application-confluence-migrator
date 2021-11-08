@@ -51,7 +51,7 @@
  5 : {'id' : 'postimportfixes', 'reference' : 'Confluence.Tools.PostImportFixes'},
  6 : {'id' : 'nestedmigration', 'reference' : 'NestedPagesMigration.WebHome'}
 })
-#set ($hiddenMigrationProfileProperties = ['activeStep', 'stepsTaken', 'totalPages'])
+#set ($hiddenMigrationProfileProperties = ['activeStep', 'stepsTaken', 'totalPages', 'migrationStartDate'])
 #set ($activeProfile = $services.confluencemigrator.profile.activeProfile)
 #set ($activeProfileDoc = $xwiki.getDocument($activeProfile))
 {{/velocity}}</content>

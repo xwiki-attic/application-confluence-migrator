@@ -60,6 +60,22 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
     </activeStep>
+    <migrationStartDate>
+      <customDisplay/>
+      <dateFormat>dd/MM/yyyy HH:mm:ss</dateFormat>
+      <disabled>0</disabled>
+      <emptyIsToday>0</emptyIsToday>
+      <hint/>
+      <name>migrationStartDate</name>
+      <number>8</number>
+      <picker>1</picker>
+      <prettyName>Migration start date</prettyName>
+      <size>20</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
+    </migrationStartDate>
     <space>
       <customDisplay/>
       <disabled>0</disabled>
