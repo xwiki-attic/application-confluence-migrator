@@ -107,7 +107,8 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
      *
      * @param totalPages the number to be set in profile
      */
-    public void setTotalPageNumber(long totalPages) {
+    public void setTotalPageNumber(long totalPages)
+    {
         profile.setTotalPageNumber(totalPages);
     }
 
@@ -125,7 +126,8 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
     /**
      * Reset migration and revert all the actions.
      */
-    public void resetMigration() {
+    public void resetMigration()
+    {
         profile.resetMigration();
     }
 
