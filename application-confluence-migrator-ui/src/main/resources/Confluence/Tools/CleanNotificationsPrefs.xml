@@ -35,7 +35,7 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content>{{groovy}}
 def notificationFilterPreferenceService = services.component.componentManager.getInstance(org.xwiki.notifications.filters.NotificationFilterPreferenceManager.class)
 def userReference = xcontext.userReference
