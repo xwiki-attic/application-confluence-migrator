@@ -49,7 +49,7 @@
  3 : {'id' : 'confluenceexport', 'reference' : 'Confluence.Tools.ConfluenceExport'},
  4 : {'id' : 'execution', 'reference' : 'Confluence.Tools.Filter'},
  5 : {'id' : 'postimportfixes', 'reference' : 'Confluence.Tools.PostImportFixes'},
- 6 : {'id' : 'nestedmigration', 'reference' : 'NestedPagesMigration.WebHome'}
+ 6 : {'id' : 'nestedmigration', 'reference' : 'Confluence.Tools.NestedPagesMigration'}
 })
 #set ($hiddenMigrationProfileProperties = ['activeStep', 'stepsTaken', 'totalPages', 'migrationStartDate'])
 #set ($activeProfile = $services.confluencemigrator.profile.activeProfile)

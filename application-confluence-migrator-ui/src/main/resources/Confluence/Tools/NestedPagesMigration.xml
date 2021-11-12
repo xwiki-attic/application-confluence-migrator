@@ -58,6 +58,8 @@
 {{/velocity}}
 
 {{velocity}}
+#set ($discard = $xwiki.jsx.use('Confluence.Tools.NestedPagesMigration'))
+#set ($discard = $xwiki.ssx.use('Confluence.Tools.NestedPagesMigration'))
 #if (!$services.security.authorization.hasAccess('admin', $xcontext.userReference, $doc.documentReference.wikiReference))
   {{error}}
   You don't have the right to use this tool on this wiki. You need to be administrator.
@@ -198,33 +200,13 @@
 &lt;!------------------------------------------
   Display configuration
   -------------------------------------------&gt;
-&lt;h2&gt;Configuration&lt;/h2&gt;
 &lt;form class="xform"&gt;
   &lt;div class="row"&gt;
   &lt;div class="col-xs-12 col-md-6"&gt;
-    &lt;dl&gt;
-      &lt;!-- Excluded pages --&gt;
-      &lt;dt&gt;&lt;label for="excludedPages"&gt;Excluded pages&lt;/label&gt;&lt;/dt&gt;
-      &lt;dd&gt;
-        &lt;p class="xHint"&gt;Page references separated by commas (',')&lt;/p&gt;
-        &lt;p&gt;&lt;input type="text" id="excludedPages" data-bind="value: configuration.excludedPages"&gt;&lt;/p&gt;
-      &lt;/dd&gt;
-      &lt;!-- Excluded spaces --&gt;
-      &lt;dt&gt;&lt;label for="excludedSpaces"&gt;Excluded spaces&lt;/label&gt;&lt;/dt&gt;
-      &lt;dd&gt;
-        &lt;p class="xHint"&gt;Space references separated by commas (',')&lt;/p&gt;
-        &lt;p&gt;&lt;input type="text" id="excludedSpaces" data-bind="value: configuration.excludedSpaces"&gt; &lt;/p&gt;
-      &lt;/dd&gt;
-      &lt;!-- Included spaces --&gt;
-      &lt;dt&gt;&lt;label for="includedSpaces"&gt;Included spaces&lt;/label&gt;&lt;/dt&gt;
-      &lt;dd&gt;
-        &lt;p class="xHint"&gt;Space references separated by commas (',')&lt;/p&gt;
-        &lt;p&gt;&lt;input type="text" id="includedSpaces" data-bind="value: configuration.includedSpaces"&gt; &lt;/p&gt;
-      &lt;/dd&gt;
-    &lt;/dl&gt;
+    &lt;input type="hidden" id="includedSpaces" data-bind="value: configuration.includedSpaces"&gt;
   &lt;/div&gt;
   &lt;div class="col-xs-12 col-md-6"&gt;
-    &lt;p&gt;&lt;button class="btn btn-default" type="button" data-toggle="collapse" data-target="#advancedSettings" aria-expanded="false" aria-controls="advancedSettings"&gt;Advanced Settings&lt;/button&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;button class="btn btn-default hidden" type="button" data-toggle="collapse" data-target="#advancedSettings" aria-expanded="false" aria-controls="advancedSettings"&gt;Advanced Settings&lt;/button&gt;&lt;/p&gt;
     &lt;dl id="advancedSettings" class="collapse well"&gt;
       &lt;!-- Exclude hidden pages --&gt;
       &lt;dt&gt;&lt;input type="checkbox" id="excludeHiddenPages" data-bind="checked: configuration.excludeHiddenPages"&gt; &lt;label for="excludeHiddenPages"&gt;Exclude hidden pages&lt;/label&gt;&lt;/dt&gt;
@@ -261,10 +243,8 @@
   &lt;/div&gt;
   &lt;div class="clearfix"&gt;
     &lt;h2&gt;Actions&lt;/h2&gt;
-    &lt;button class="btn btn-success" data-bind="click: startBreakageDetection, disable: isComputing() || isPlanExecuting()"&gt;Detect breakages&lt;/button&gt;
     &lt;button class="btn btn-primary" data-bind="click: computePlan, disable: isComputing() || isPlanExecuting()"&gt;Compute plan&lt;/button&gt;
     &lt;button class="btn btn-primary" data-bind="disable: actions().length == 0 || isPlanExecuting() || tooLongs().length &gt; 0, click: executePlan"&gt;Execute plan&lt;/button&gt;
-    &lt;button class="btn btn-default" data-bind="disable: actions().length == 0 || isPlanExecuting(), click: cleanPlan"&gt;Clean plan (to free the memory)&lt;/button&gt;
   &lt;/div&gt;
 &lt;/form&gt;
 &lt;!------------------------------------------
@@ -695,12 +675,12 @@
     this.excludeHiddenPages    = ko.observable(true);
     this.excludeClassPages     = ko.observable(true);
     this.dontMoveChildren      = ko.observable(false);
-    this.addRedirection        = ko.observable(true);
+    this.addRedirection        = ko.observable(false);
     this.convertPreferences    = ko.observable(true);
     this.convertRights         = ko.observable(false);
     this.excludedPages         = ko.observable('');
-    this.excludedSpaces        = ko.observable('XWiki,Admin,NestedPagesMigration');
-    this.includedSpaces        = ko.observable('');
+    this.excludedSpaces        = ko.observable();
+    this.includedSpaces        = ko.observable("$xwiki.getDocument($services.confluencemigrator.profile.activeProfile).getValue('space')");
     this.excludedObjectClasses = ko.observable('XWiki.XWikiUsers,XWiki.XWikiSkins,Panels.PanelClass,Blog.BlogClass,Blog.BlogPostClass,Blog.CategoryClass,ColorThemes.ColorThemeClass,FlamingoThemesCode.ThemeClass,IconThemesCode.IconThemeClass,XWiki.SchedulerJobClass,Menu.MenuClass,XWiki.RedirectClass');
     this.excludedObjectClasses.extend({ notify: 'always' });
   }
@@ -1166,7 +1146,7 @@
       <name>Live view</name>
     </property>
     <property>
-      <parse>0</parse>
+      <parse>1</parse>
     </property>
     <property>
       <use>currentPage</use>
