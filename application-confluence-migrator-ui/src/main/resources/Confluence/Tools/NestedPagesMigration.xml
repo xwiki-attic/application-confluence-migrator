@@ -1,0 +1,1413 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="Confluence.Tools.NestedPagesMigration" locale="">
+  <web>Confluence.Tools</web>
+  <name>NestedPagesMigration</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>Nested Pages Migration</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity output="false"}}
+#************************************************************************
+ * Compute and return the maximum authorized length for the full name.
+ ************************************************************************#
+#macro(getLocalReferenceMaxLength)
+ #set ($localReferenceMaxLength = '255')
+ ## Available since XWiki 11.4RC1.
+ #if ($doc.localReferenceMaxLength)
+   #set ($localReferenceMaxLength = $doc.localReferenceMaxLength)
+ #end
+ ## The document reference size limit was increased from 255 to 768 (the maximum supported by MySQL) in XWiki 13.2.
+ #if ($services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-model').id.version.compareTo('13.2') &gt;= 0)
+   #set ($localReferenceMaxLength = $mathtool.sub($localReferenceMaxLength, $xcontext.database.length()))
+ #else
+   ## To avoid issues with documents with path too long, take some extra margin, higher than the wiki name length.
+   #set ($localReferenceMaxLength = $mathtool.sub($localReferenceMaxLength, 50))
+ #end
+ $localReferenceMaxLength
+#end
+{{/velocity}}
+
+{{velocity}}
+#if (!$services.security.authorization.hasAccess('admin', $xcontext.userReference, $doc.documentReference.wikiReference))
+  {{error}}
+  You don't have the right to use this tool on this wiki. You need to be administrator.
+  {{/error}}
+#else
+## Both job.css and extension.css are needed because the ui-progress classes that we need to display
+## a progress bar are in one of these 2 files depending on the XWiki version
+#set ($discard = $xwiki.ssfx.use('uicomponents/job/job.css', true))
+#set ($discard = $xwiki.ssfx.use('uicomponents/extension/extension.css', true))
+#set ($discard = $xwiki.ssfx.use('uicomponents/logging/logging.css', true))
+#set ($discard = $xwiki.linkx.use($services.webjars.url('org.xwiki.platform:xwiki-platform-tree-webjar', 'tree.min.css',
+    {'evaluate': true}), {'type': 'text/css', 'rel': 'stylesheet'}))
+{{html clean="false"}}
+&lt;!------------------------------------------
+  Migration Action Template 
+  -------------------------------------------&gt;
+&lt;script id="MigrationActionTemplate" type="text/html"&gt;
+  &lt;!-- ko foreach: ${escapetool.d}data.actions --&gt;
+  &lt;li class="jstree-node" data-bind="
+    visible: (!targetDocument.equals(sourceDocument) || getNumberOfChildren() &gt; 0 || getNumberOfPreferences() &gt; 0 || getNumberOfRights()&gt; 0),
+    css: {
+      'jstree-closed': !displayChildren(),
+      'jstree-open'  : displayChildren(),
+      'jstree-leaf'  : getNumberOfChildren() == 0 &amp;&amp; getNumberOfPreferences() == 0,
+      'jstree-last'  : ${escapetool.d}index() == ${escapetool.d}parent.actions.length - 1
+    }"&gt;
+    ## Display the tree branch
+    &lt;i class="jstree-icon jstree-ocl" role="presentation" data-bind="click: toggleDisplayChildren"&gt;&lt;/i&gt;
+    ##  Display the checbox
+    &lt;input type="checkbox" data-bind="checked: enabled" /&gt;
+    ## Display the 'all' link
+    &lt;a href="#" data-bind="visible: !enabled() &amp;&amp; (getNumberOfChildren() &gt; 0 || getNumberOfPreferences() &gt; 0 || getNumberOfRights()&gt; 0), click: enableWithChildren" &gt;(all)&lt;/a&gt;
+    ## Display the document name
+    &lt;strong class="documentName" data-bind="text: getTargetName(), click: toggleDisplayChildren, css: { 'bg-danger': isTooLong() }"&gt;&lt;/strong&gt;
+    ## Display the target location
+    [&lt;span data-bind="text: serializedTargetDocument()" class="monospace"&gt;&lt;/span&gt;]
+    ## Display if the action is a change or not
+    &lt;em data-bind="visible: targetDocument.equals(sourceDocument)"&gt;(unchanged)&lt;/em&gt;
+    ## Display if a previous document will be deleted
+    &lt;strong data-bind="visible: deletePrevious"&gt;(duplicated document will be deleted)&lt;/strong&gt;
+    ## Display the exclude page button
+    &lt;button class="btn btn-default btn-xs" data-bind="click: ${escapetool.d}root.excludePage, disable: targetDocument.equals(sourceDocument)"&gt;exclude page&lt;/button&gt;
+    ## Display the exclude space button
+    &lt;button class="btn btn-default btn-xs" data-bind="click: ${escapetool.d}root.excludeSpace"&gt;exclude space&lt;/button&gt;
+    ## Display th button to change the parent of ht document
+    &lt;button class="btn btn-default btn-xs" data-bind="click: ${escapetool.d}root.setParent"&gt;set parent&lt;/button&gt;
+    ## Display the number of children
+    (&lt;span data-bind="text: getNumberOfChildren()"&gt;&lt;/span&gt; children,
+    ## Display the number of preferences
+    &lt;span data-bind="text: getNumberOfPreferences()"&gt;&lt;/span&gt; preferences,
+    ## Display the number of rights
+    &lt;span data-bind="text: getNumberOfRights()"&gt;&lt;/span&gt; rights)
+    ## Display the original location
+    from &lt;a target="_blank" class="monospace" data-bind="text: serializedSourceDocument(), attr: {href: getSourceLink()}"&gt;&lt;/a&gt;
+    ## Display all children
+    &lt;!-- ko if: displayChildren() --&gt;
+      ## Display preferences
+      &lt;!-- ko if: preferences.length &gt; 0 --&gt;
+        &lt;ul data-bind="foreach: preferences" class="jstree-children"&gt;
+          &lt;li class="text-warning jstree-node jstree-leaf"&gt;
+            &lt;i class="jstree-icon jstree-ocl" role="presentation"&gt;&lt;/i&gt;
+            &lt;input type="checkbox" data-bind="checked: enabled"/&gt; &lt;strong&gt;[Preferences] &lt;span data-bind="text: property"&gt;&lt;/span&gt; : &lt;span data-bind="text: value"&gt;&lt;/span&gt;&lt;/strong&gt; (coming from &lt;a target="_blank" class="monospace" data-bind="text: getSerializedOrigin(), attr: {href: getOriginLink()}"&gt;&lt;/a&gt;)
+          &lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;!-- /ko --&gt;
+      ## Display rights
+      &lt;!-- ko if: rights.length &gt; 0 --&gt;
+        &lt;ul data-bind="foreach: rights" class="jstree-children"&gt;
+          &lt;li class="text-danger jstree-node jstree-leaf"&gt;
+            &lt;i class="jstree-icon jstree-ocl" role="presentation"&gt;&lt;/i&gt;
+            &lt;input type="checkbox" data-bind="checked: enabled"/&gt; &lt;strong&gt;[Right] &lt;span data-bind="text: toString()"&gt;&lt;/span&gt;&lt;/strong&gt; (coming from &lt;a target="_blank" class="monospace" data-bind="text: getSerializedOrigin(), attr: {href: getOriginLink()}"&gt;&lt;/a&gt;)
+          &lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;!-- /ko --&gt;
+      ## Display children documents
+      &lt;ul data-bind="template: { name: 'MigrationActionTemplate', data: {'actions': children()} }" class="jstree-children"/&gt;
+    &lt;!-- /ko --&gt;
+  &lt;/li&gt;
+  &lt;!-- /ko --&gt;
+&lt;/script&gt;
+&lt;!------------------------------------------
+  Display Logs
+  -------------------------------------------&gt;
+&lt;script id="DisplayLogs" type="text/html"&gt;
+  &lt;h2 class="log-title"&gt;Logs: &lt;/h2&gt;
+  &lt;ul class="log" data-bind="if: logs().length &gt; 0"&gt;
+    &lt;!-- ko foreach: logs --&gt;
+    &lt;li class="log-item" data-bind="css: getClass()"&gt;
+      &lt;div data-bind="text: message"&gt;&lt;/div&gt;
+      &lt;!-- ko if: stackTrace --&gt;
+      &lt;pre data-bind="text: stackTrace"&gt;&lt;/pre&gt;
+      &lt;!--  /ko --&gt;
+    &lt;/li&gt;
+    &lt;!-- /ko --&gt;
+  &lt;/ul&gt;
+&lt;/script&gt;
+&lt;!------------------------------------------
+  Display plan
+  -------------------------------------------&gt;
+&lt;script id="DisplayPlan" type="text/html"&gt;
+  &lt;h2&gt;Plan&lt;/h2&gt;
+  &lt;div class="migration-plan box"&gt;
+    &lt;div data-bind="if: isComputing()" id="planComputing"&gt;
+      &lt;p&gt;The plan is being computed and it could take some time. Please wait...&lt;/p&gt;
+      &lt;div class="ui-progress-background"&gt;
+        &lt;div class="ui-progress-bar green" data-bind="style: {width: progress() + '%'}"&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="box warningmessage" data-bind="visible: duplicates().length &gt; 0"&gt;
+      &lt;p&gt;The migration have detected some duplicated documents, that are probably the consequences of a failed attempt to run the migrator.&lt;br /&gt;
+      &lt;p&gt;If it's the first time you run the migrator, you might have a problem.&lt;/p&gt;
+      &lt;p&gt;Theses documents are:&lt;/p&gt;
+      &lt;ul data-bind="foreach: {data: duplicates(), as: 'doc'}"&gt;
+        &lt;li data-bind="text: doc"&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+      &lt;p&gt;If you are ok with it, just run the migrator and these documents will be overwritten.&lt;/p&gt;
+    &lt;/div&gt;
+     &lt;div class="box errormessage" data-bind="visible: tooLongs().length &gt; 0"&gt;
+      &lt;p&gt;We have detected some pages that will have too long path after the migration (limit is #getLocalReferenceMaxLength()). You should rename them (or rename one of their parents) before computing a new plan.&lt;/p&gt;
+      &lt;p&gt;Theses pages are:&lt;/p&gt;
+      &lt;ul data-bind="foreach: {data: tooLongs(), as: 'action'}"&gt;
+        &lt;li class="monospace"&gt;&lt;a data-bind="attr: {href: action.getSourceLink()}" target="_blank"&gt;&lt;span data-bind="text: action.serializedSourceDocument()"&gt;&lt;/span&gt;&lt;/a&gt; -&amp;gt; &lt;span data-bind="text: action.serializedTargetDocument()"&gt;&lt;/span&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+    &lt;ul data-bind="if: actions() &amp;&amp; !isComputing() &amp;&amp; !isPlanEmpty()" id="planTree" class="jstree jstree-xwiki jstree-xwiki-responsive jstree-container-ul"&gt;
+      &lt;!-- ko template: {name: 'MigrationActionTemplate', data: {'actions': actions() }} --&gt;
+      &lt;!-- /ko --&gt;
+    &lt;/ul&gt;
+    &lt;!-- ko if: !isComputing() &amp;&amp; isPlanEmpty() --&gt;
+    &lt;div class="box infomessage"&gt;
+      &lt;p&gt;There is nothing to do!&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;!-- /ko --&gt;
+    &lt;!-- ko template: {name: 'DisplayLogs', data: ${escapetool.d}root} --&gt;
+    &lt;!-- /ko --&gt;
+  &lt;/div&gt;
+&lt;/Script&gt;
+&lt;!------------------------------------------
+  Display configuration
+  -------------------------------------------&gt;
+&lt;h2&gt;Configuration&lt;/h2&gt;
+&lt;form class="xform"&gt;
+  &lt;div class="row"&gt;
+  &lt;div class="col-xs-12 col-md-6"&gt;
+    &lt;dl&gt;
+      &lt;!-- Excluded pages --&gt;
+      &lt;dt&gt;&lt;label for="excludedPages"&gt;Excluded pages&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;p class="xHint"&gt;Page references separated by commas (',')&lt;/p&gt;
+        &lt;p&gt;&lt;input type="text" id="excludedPages" data-bind="value: configuration.excludedPages"&gt;&lt;/p&gt;
+      &lt;/dd&gt;
+      &lt;!-- Excluded spaces --&gt;
+      &lt;dt&gt;&lt;label for="excludedSpaces"&gt;Excluded spaces&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;p class="xHint"&gt;Space references separated by commas (',')&lt;/p&gt;
+        &lt;p&gt;&lt;input type="text" id="excludedSpaces" data-bind="value: configuration.excludedSpaces"&gt; &lt;/p&gt;
+      &lt;/dd&gt;
+      &lt;!-- Included spaces --&gt;
+      &lt;dt&gt;&lt;label for="includedSpaces"&gt;Included spaces&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;p class="xHint"&gt;Space references separated by commas (',')&lt;/p&gt;
+        &lt;p&gt;&lt;input type="text" id="includedSpaces" data-bind="value: configuration.includedSpaces"&gt; &lt;/p&gt;
+      &lt;/dd&gt;
+    &lt;/dl&gt;
+  &lt;/div&gt;
+  &lt;div class="col-xs-12 col-md-6"&gt;
+    &lt;p&gt;&lt;button class="btn btn-default" type="button" data-toggle="collapse" data-target="#advancedSettings" aria-expanded="false" aria-controls="advancedSettings"&gt;Advanced Settings&lt;/button&gt;&lt;/p&gt;
+    &lt;dl id="advancedSettings" class="collapse well"&gt;
+      &lt;!-- Exclude hidden pages --&gt;
+      &lt;dt&gt;&lt;input type="checkbox" id="excludeHiddenPages" data-bind="checked: configuration.excludeHiddenPages"&gt; &lt;label for="excludeHiddenPages"&gt;Exclude hidden pages&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;&lt;span class="xHint"&gt;Most of the hidden pages are techinal content. Moving them can break applications.&lt;/span&gt;&lt;/dd&gt;
+      &lt;!-- Exclude class pages --&gt;
+      &lt;dt&gt;&lt;input type="checkbox" id="excludeClassPages" data-bind="checked: configuration.excludeClassPages"&gt; &lt;label for="excludeClassPages"&gt;Exclude pages having a class&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;&lt;span class="xHint"&gt;The pages are technical and moving them can break applications.&lt;/span&gt;&lt;/dd&gt;
+      &lt;!-- Don't move children --&gt;
+      &lt;dt&gt;&lt;input type="checkbox" id="dontMoveChildren" data-bind="checked: configuration.dontMoveChildren"&gt; &lt;label for="dontMoveChildren"&gt;Do not move children&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;&lt;span class="xHint"&gt;Only convert terminal pages to nested pages, without moving them under their parent.&lt;/span&gt;&lt;/dd&gt;
+      &lt;!-- Add redirection --&gt;
+      &lt;dt&gt;&lt;input type="checkbox" id="addRedirection" data-bind="checked: configuration.addRedirection"&gt; &lt;label for="addRedirection"&gt;Add redirection&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;&lt;span class="xHint"&gt;Add a redirection in the old location.&lt;/span&gt;&lt;/dd&gt;
+      &lt;!-- Convert preferences --&gt;
+      &lt;dt&gt;&lt;input type="checkbox" id="convertPreferences" data-bind="checked: configuration.convertPreferences"&gt; &lt;label for="convertPreferences"&gt;Convert preferences&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;&lt;span class="xHint"&gt;Make sure that the preferences applied on the page remain the same after the move, by dupplicating the preferences on the target document.&lt;/span&gt;&lt;/dd&gt;
+      &lt;!-- Convert rights --&gt;
+      &lt;dt&gt;&lt;input type="checkbox" id="convertRights" data-bind="checked: configuration.convertRights"&gt; &lt;label for="convertRights"&gt;Convert rights (experimental)&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;&lt;span class="xHint"&gt;Make sure that the rights applied on the page remain the same after the move &lt;span class="text-danger"&gt;(Currently bugged)&lt;/span&gt;.&lt;/span&gt;&lt;/dd&gt;
+      &lt;!-- Excluded Object Classes --&gt;
+      &lt;dt&gt;&lt;label for="excludedObjectClasses" data-bind="click: toggleXClassList"&gt;Exclude classes&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;p class="xHint" data-bind="click: toggleXClassList"&gt;Exclude pages holding an object of one of the specified classes (separated by a coma ',').&lt;/p&gt;
+        &lt;p&gt;&lt;textarea id="excludedObjectClasses" data-bind="textInput: configuration.excludedObjectClasses, click: showXClassList" data-localReferenceMaxLength="#getLocalReferenceMaxLength()" data-xclasses="#foreach($class in $xwiki.classList)#if($foreach.count&gt;1),#end${class}#end"&gt;&lt;/textarea&gt;&lt;/p&gt;
+        &lt;div data-bind="visible: xclassListVisible"&gt;
+          &lt;a data-bind="click: hideXClassList" href="#"&gt;$services.icon.renderHTML('remove') Hide&lt;/a&gt;
+          &lt;ul data-bind="foreach: {data: xclasses, as: 'xclass'}" style="list-style-type: none; padding: 0;"&gt;
+            &lt;li&gt;&lt;label&gt;&lt;input type="checkbox" data-bind="checked: xclass.selected"/&gt; &lt;span data-bind="text: xclass.name"&lt;/span&gt;&lt;/label&gt;&lt;/li&gt;
+          &lt;/ul&gt;
+        &lt;/div&gt;
+      &lt;/dd&gt;
+    &lt;/dl&gt;
+  &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="clearfix"&gt;
+    &lt;h2&gt;Actions&lt;/h2&gt;
+    &lt;button class="btn btn-success" data-bind="click: startBreakageDetection, disable: isComputing() || isPlanExecuting()"&gt;Detect breakages&lt;/button&gt;
+    &lt;button class="btn btn-primary" data-bind="click: computePlan, disable: isComputing() || isPlanExecuting()"&gt;Compute plan&lt;/button&gt;
+    &lt;button class="btn btn-primary" data-bind="disable: actions().length == 0 || isPlanExecuting() || tooLongs().length &gt; 0, click: executePlan"&gt;Execute plan&lt;/button&gt;
+    &lt;button class="btn btn-default" data-bind="disable: actions().length == 0 || isPlanExecuting(), click: cleanPlan"&gt;Clean plan (to free the memory)&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/form&gt;
+&lt;!------------------------------------------
+  Display plan
+  -------------------------------------------&gt;
+&lt;div data-bind="if: isPlanRequested() &amp;&amp; !isPlanExecuting()"&gt;
+  ## We escape the dollar of the knockout variable '$root' because $root also exists in velocity
+  &lt;!-- ko template: {name: 'DisplayPlan', data: ${escapetool.d}root} --&gt;
+  &lt;!-- /ko --&gt;
+&lt;/div&gt;
+&lt;!------------------------------------------
+  Execute Plan
+  -------------------------------------------&gt;
+&lt;!-- ko if: isPlanExecuting() &amp;&amp; !success()--&gt;
+&lt;div class="box" id="planExecuting"&gt;
+  &lt;p&gt;The plan is being executed and it could take some time. Please wait...&lt;/p&gt;
+  &lt;div class="ui-progress-background"&gt;
+    &lt;div class="ui-progress-bar green" data-bind="style: {width: progress() + '%'}"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;!-- ko template: {name: 'DisplayLogs', data: ${escapetool.d}root} --&gt;
+  &lt;!-- /ko --&gt;
+&lt;/div&gt;
+&lt;!-- /ko --&gt;
+&lt;!------------------------------------------
+  Display breakages
+  -------------------------------------------&gt;
+&lt;!-- ko if: isBreakageListRequested--&gt;
+&lt;h2&gt;Breakages&lt;/h2&gt;
+&lt;div class="box"&gt;
+  &lt;div data-bind="if: isComputing"&gt;
+    &lt;p&gt;The list of broken pages is being computed, please wait...&lt;/p&gt;
+    &lt;div class="ui-progress-background"&gt;
+      &lt;div class="ui-progress-bar green" data-bind="style: {width: progress() + '%'}"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;!-- ko template: {name: 'DisplayLogs', data: ${escapetool.d}root} --&gt;
+    &lt;!-- /ko --&gt;
+  &lt;/div&gt;
+  &lt;div data-bind="ifnot: isComputing"&gt;
+    &lt;p&gt;If you don't migrate your pages, &lt;strong data-bind="text: breakageList().size()"&gt;&lt;/strong&gt; documents will lose their current parent.&lt;/p&gt;
+    &lt;ul data-bind="foreach: breakageList"&gt;
+      &lt;li&gt;Page &lt;span data-bind="text: document" class="monospace box infomessage" &gt;&lt;/span&gt; will lose its current parent &lt;span data-bind="text: actualParent" class="monospace box infomessage"&gt;&lt;/span&gt; because its location parent is &lt;span data-bind="text: locationParent" class="monospace box infomessage"&gt;&lt;/span&gt;.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;!-- /ko --&gt;
+&lt;!------------------------------------------
+  End message
+  -------------------------------------------&gt;
+&lt;!-- ko if: success() --&gt;
+  &lt;div class="box successmessage" id="planExecuted"&gt;
+  The plan have been executed!
+  &lt;/div&gt;
+  &lt;!-- ko template: {name: 'DisplayLogs', data: ${escapetool.d}root} --&gt;
+  &lt;!-- /ko --&gt;
+&lt;!-- /ko --&gt;
+{{/html}}
+#end
+{{/velocity}}
+</content>
+  <object>
+    <name>Confluence.Tools.NestedPagesMigration</name>
+    <number>1</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>b3cdc3f4-0800-4b85-823f-f80667c89f4e</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require.config({
+  paths: {
+    #if ("$!request.minify" == false)
+      'knockout': "$services.webjars.url('knockout', 'knockout.debug.js')"
+    #else
+      'knockout': "$services.webjars.url('knockout', 'knockout.js')"
+    #end
+  }
+});</code>
+    </property>
+    <property>
+      <name>Live view configuration</name>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
+  <object>
+    <name>Confluence.Tools.NestedPagesMigration</name>
+    <number>2</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>a80c48c9-ca6a-416a-941e-87080e40d511</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery', 'xwiki-meta', 'knockout'], function ($, xm, ko) {
+  'use strict';
+
+  function localSerializer(document) {
+    var documentReference = XWiki.Model.resolve(document, XWiki.EntityType.DOCUMENT).relativeTo(xm.documentReference.extractReference(XWiki.EntityType.WIKI));
+    return XWiki.Model.serialize(documentReference);
+  }
+  
+  function resolveLocally(document) {
+    return XWiki.Model.resolve(document, XWiki.EntityType.DOCUMENT).relativeTo(xm.documentReference.extractReference(XWiki.EntityType.WIKI));
+  }
+  
+  /**
+   * Class representing a migration action
+   */
+  function MigrationAction(source, target, parent) {
+    var self = this;
+    
+    self.parent          = parent;
+    self.sourceDocument  = resolveLocally(source);
+    self.targetDocument  = resolveLocally(target);
+    self.children        = ko.observableArray();
+    self.displayChildren = ko.observable(false);
+    self.enabled         = ko.observable(true);
+    self.preferences     = [];
+    self.rights          = [];
+    self.deletePrevious  = false;
+    self.localReferenceMaxLength = $('#excludedObjectClasses').data().localreferencemaxlength;
+    
+    self.serializedSourceDocument = function () {
+      return XWiki.Model.serialize(self.sourceDocument);
+    };
+    
+    self.serializedTargetDocument = function () {
+      return XWiki.Model.serialize(self.targetDocument);
+    };
+    
+    self.getNumberOfChildren = function () {
+      var number = self.children().length;
+      for (var i = 0; i &lt; self.children().length; ++i) {
+        number += self.children()[i].getNumberOfChildren();
+      }
+      return number;
+    };
+    
+    self.getTargetName = function () {
+      return self.targetDocument.getName() == 'WebHome' ? self.targetDocument.parent.getName() : self.targetDocument.getName();
+    }
+    
+    self.isTooLong = function () {
+      return self.serializedTargetDocument().length &gt; self.localReferenceMaxLength;
+    }
+    
+    self.getSourceLink = function () {
+      return new XWiki.Document(self.sourceDocument).getURL();
+    }
+    
+    self.toggleDisplayChildren = function() {
+      self.displayChildren(!self.displayChildren());
+    }
+    
+    self.disableChildren = function () {
+      for (var i = 0; i &lt; self.children().length; ++i) {
+        self.children()[i].enabled(false);
+      }
+      for (var i = 0; i &lt; self.preferences.length; ++i) {
+        self.preferences[i].enabled(false);
+      }
+      for (var i = 0; i &lt; self.rights.length; ++i) {
+        self.rights[i].enabled(false);
+      }
+    };
+    
+    self.enabled.subscribe(function (newValue) {
+      if (!newValue) {
+        self.disableChildren();
+      }
+    });
+    
+    self.enableWithChildren = function() {
+      self.enabled(true);
+      for (var i = 0; i &lt; self.preferences.length; ++i) {
+        self.preferences[i].enabled(true);
+      }
+      for (var i = 0; i &lt; self.rights.length; ++i) {
+        self.rights[i].enabled(true);
+      }
+      for (var i = 0; i &lt; self.children().length; ++i) {
+        self.children()[i].enableWithChildren();
+      }
+    }
+    
+    self.getNumberOfPreferences = function () {
+      return self.preferences.length;
+    }
+    
+    self.getNumberOfRights = function () {
+      return self.rights.length;
+    }
+  }
+  
+  /**
+   * Class representing a preference.
+   */
+  function Preference(property, value, origin) {
+    var self = this;
+    
+    self.property = property;
+    self.value    = value;
+    self.origin   = origin;
+    self.enabled  = ko.observable(true);
+    
+    self.getSerializedOrigin = function () {
+      return localSerializer(self.origin);
+    };
+    
+    self.getOriginLink = function () {
+      return new XWiki.Document(resolveLocally(self.origin)).getURL('admin');
+    };
+  }
+  
+  /**
+   * Class representing a right.
+   */
+  function Right(user, group, level, allow, origin) {
+    var self = this;
+    
+    self.user   = user;
+    self.group  = group;
+    self.level  = level;
+    self.allow  = allow;
+    self.origin = origin;
+    self.enabled  = ko.observable(true);
+    
+    self.getType = function () {
+      return self.user ? 'user' : 'group';
+    };
+    
+    self.getTarget = function () {
+      return self.user ? self.user : self.group;
+    };
+    
+    self.getAllow = function () {
+      return self.allow ? 'allow' : 'deny';
+    };
+    
+    self.toString = function () {
+      return self.getType() + ' : ' + self.getTarget() + ', ' + self.level + ' : ' + self.getAllow();
+    };
+    
+    self.getSerializedOrigin = function () {
+      return localSerializer(self.origin);
+    };
+    
+    self.getOriginLink = function () {
+      var ref = resolveLocally(self.origin);
+      return new XWiki.Document(ref).getURL('admin', ref.name == 'WebPreferences' ? 'section=PageAndChildrenRights' : 'section=Rights');
+    };
+  }
+  
+  /**
+   * Represent a breakage between location parent and actual parent
+   */
+  function Breakage(document, locationParent, actualParent) {
+    var self = this;
+    self.document       = document;
+    self.locationParent = locationParent;
+    self.actualParent   = actualParent;
+  }
+
+  /**
+   * Class holding the configuration used to compute the plan.
+   */
+  function AppConfiguration() {
+    this.excludeHiddenPages    = ko.observable(true);
+    this.excludeClassPages     = ko.observable(true);
+    this.dontMoveChildren      = ko.observable(false);
+    this.addRedirection        = ko.observable(true);
+    this.convertPreferences    = ko.observable(true);
+    this.convertRights         = ko.observable(false);
+    this.excludedPages         = ko.observable('');
+    this.excludedSpaces        = ko.observable('XWiki,Admin,NestedPagesMigration');
+    this.includedSpaces        = ko.observable('');
+    this.excludedObjectClasses = ko.observable('XWiki.XWikiUsers,XWiki.XWikiSkins,Panels.PanelClass,Blog.BlogClass,Blog.BlogPostClass,Blog.CategoryClass,ColorThemes.ColorThemeClass,FlamingoThemesCode.ThemeClass,IconThemesCode.IconThemeClass,XWiki.SchedulerJobClass,Menu.MenuClass,XWiki.RedirectClass');
+    this.excludedObjectClasses.extend({ notify: 'always' });
+  }
+      
+  function getExcludedClassesArray(model) {
+    return model.configuration.excludedObjectClasses().split(',');
+  }
+  
+  function inExcludedClassesArray(name, model) {
+    return $.inArray(name, getExcludedClassesArray(model)) &gt;= 0;
+  }
+  
+  function appendToString(string, toAppend) {
+    var result = string;
+    if (result.length &gt; 0) {
+      result += ',';
+    }
+    result += toAppend;
+    return result;
+  }
+  
+  function computeNewExcludedClassesList(name, value, model) {
+    var newList = '';
+    var oldList = getExcludedClassesArray(model);
+    // We walk through the old list to respect the order written in it to avoid a WTF effect
+    for (var i = 0; i &lt; oldList.length; ++i) {
+      if (oldList[i] != name) {
+        newList = appendToString(newList, oldList[i]);
+      }
+    }
+    if (value) {
+      newList = appendToString(newList, name);
+    }
+    model.configuration.excludedObjectClasses(newList);
+  }
+  
+  function initXClassCheckbox(name, model) {
+    var selected = ko.computed({
+      read: function () {
+        return inExcludedClassesArray(name, model);
+      },
+      write: function (value) {
+        computeNewExcludedClassesList(name, value, model);
+      }
+    });
+    return {'name': name, 'selected': selected};
+  }
+
+  /**
+   * Represents a log entry.
+   */
+  function Log(message, level, stackTrace) {
+    var self = this;
+    
+    self.message    = message;
+    self.level      = level;
+    self.stackTrace = stackTrace;
+
+    self.getClass = function () {
+      return 'log-item-' + self.level.toLowerCase();
+    }
+  }
+
+  /**
+   * The model of the application. All data and functions used by the application view are stored here.
+   */
+  function AppViewModel() {
+    var self = this;
+    
+    // Fields
+    self.configuration     = new AppConfiguration();
+    self.actions           = ko.observableArray();
+    self.isPlanRequested   = ko.observable(false);
+    self.isBreakageListRequested = ko.observable(false);
+    self.isComputing       = ko.observable(false);
+    self.xclasses          = ko.observableArray();
+    self.xclassListVisible = ko.observable(false);
+    self.jobId             = false;
+    self.progress          = ko.observable(0);
+    self.logs              = ko.observableArray();
+    self.isPlanExecuting   = ko.observable(false);
+    self.success           = ko.observable(false);
+    self.duplicates        = ko.observableArray();
+    self.tooLongs          = ko.observableArray();
+    self.breakageList      = ko.observableArray();
+    
+    // Do not refresh logs and actions too often (to get better performances, because a lot of actions and logs
+    // are pushed in the same time, so it is better to no refresh the UI at every push).
+    self.logs.extend({ rateLimit: 200});
+    self.actions.extend({ rateLimit: 200});
+    
+    self.toggleXClassList = function () {
+      self.xclassListVisible(!self.xclassListVisible());
+    }
+    
+    self.showXClassList = function () {
+      self.xclassListVisible(true);
+    }
+    
+    self.hideXClassList = function () {
+      self.xclassListVisible(false);
+    }
+    
+    self.getExcludedClassesArray = function () {
+      return self.configuration.excludedObjectClasses().split(',');
+    }
+    
+    self.inExcludedClassesArray = function() {
+      return $.inArray(name, self.getExcludedClassesArray()) &gt;= 0;
+    }
+    
+    self.computeNewExcludedClassesList = function (name, value) {
+      var newList = '';
+      var oldList = self.getExcludedClassesArray();
+      // We walk through the old list to respect the order written in it to avoid a WTF effect
+      for (var i = 0; i &lt; oldList.length; ++i) {
+        if (oldList[i] != name) {
+          if (newList.length &gt; 0) {
+            newList += ',';
+          }
+          newList += oldList[i];
+        }
+      }
+      if (value) {
+        if (newList.length &gt; 0) {
+          newList += ',';
+        }
+        newList += name;;
+      }
+      self.configuration.excludedObjectClasses(newList);
+    }
+    
+    self.initXClassCheckbox = function (name) {
+      var selected = ko.computed({
+        read: function () {
+          return inExcludedClassesArray(name, self);
+        },
+        write: function (value) {
+          computeNewExcludedClassesList(name, value, self);
+        }
+      });
+      return {'name': name, 'selected': selected};
+    }
+    
+    /**
+     * Initialize the XClasses fields.
+     */
+    self.initXClasses = function() {
+      var xclasses = $('#excludedObjectClasses').attr('data-xclasses').split(',');
+      for (var i = 0; i &lt; xclasses.length; ++i) {
+        self.xclasses.push(initXClassCheckbox(xclasses[i], self));
+      }
+    }
+
+    /**
+     * Computed observable variable that returns if the plan is empty.
+     */
+    self.isPlanEmpty = ko.computed(function () {
+      return self.actions().length == 0;
+    });
+    
+    /**
+     * Send an ajax request to start a new job for the creation of a plan or the breakage detection
+     */
+    self.startComputationJob = function (action, callback) {
+      self.progress(0);
+      self.isComputing(true);
+      self.actions.removeAll();
+      self.duplicates.removeAll();
+      self.tooLongs.removeAll();
+      self.breakageList.removeAll();
+      $.getJSON(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
+          'action'               : action,
+          'excludeHiddenPages'   : self.configuration.excludeHiddenPages(),
+          'excludeClassPages'    : self.configuration.excludeClassPages(),
+          'dontMoveChildren'     : self.configuration.dontMoveChildren(),
+          'addRedirection'       : self.configuration.addRedirection(),
+          'convertPreferences'   : self.configuration.convertPreferences(),
+          'convertRights'        : self.configuration.convertRights(),
+          'excludedPages'        : self.configuration.excludedPages(),
+          'excludedSpaces'       : self.configuration.excludedSpaces(),
+          'includedSpaces'       : self.configuration.includedSpaces(),
+          'excludedObjectClasses': self.configuration.excludedObjectClasses()
+        })
+        .done(callback)
+        .fail(function () {
+          console.log(action == 'startBreakageDetection' ? 'ERROR: Failed to start the breakage detection.'
+            : 'ERROR: Failed to start a new plan computation.' );
+        });
+    }
+
+    /**
+     * Send an ajax request to start a new job for the creation of a plan.
+     */
+    self.computePlan = function() {
+      self.isPlanRequested(true);
+      self.isBreakageListRequested(false);
+      self.startComputationJob('createPlan', function (data) {
+        self.jobId = data.jobId;
+        self.logs.removeAll();
+        self.getJobStatusAndLogs('createmigrationplan', function() { self.getMigrationPlan(); });
+      });
+    };
+    
+    /**
+     * Perform an AJAX request to get the current job status and its logs, so we can update the progress bar and the 
+     * logs UI.
+     */
+    self.getJobStatusAndLogs = function (jobAction, successCallback) {
+      $.getJSON(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
+        'action' : 'printStatusAndLogs',
+        'jobAction' : jobAction
+      }).done(function (data) {
+        var logs = data.logs;
+        for (var i = self.logs().length; i &lt; logs.length; ++i) {
+          self.logs.push(new Log(logs[i].message, logs[i].level, logs[i].stackTrace));
+        }
+        var state = data.state;
+        if (state == 'FINISHED') {
+          self.progress(100);
+          if (successCallback) {
+            successCallback();
+          }
+        } else if (state == 'RUNNING' || state == 'NONE') {
+          self.progress(data.progress * 100);
+          // retry in 0.8 seconds
+          setTimeout(function() { self.getJobStatusAndLogs(jobAction, successCallback); }, 800);
+        }
+      });
+    };
+
+    /**
+     * Get the migration plan that have been computed, in order to display it.
+     */
+    self.getMigrationPlan = function () {
+      $.getJSON(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
+        'action': 'printPlan'
+      }).done(function (data) {
+        console.log('INFO: Plan computed');
+        var parseAction = function (data, parent) {
+          var action = new MigrationAction(data.sourceDocument, data.targetDocument, parent);
+          if (data.children) {
+            for (var i = 0; i &lt; data.children.length; ++i) {
+              action.children.push(parseAction(data.children[i], action));
+            }
+          }
+          if (data.preferences) {
+            for (var i = 0; i &lt; data.preferences.length; ++i) {
+              action.preferences[action.preferences.length] = new Preference(data.preferences[i].name, data.preferences[i].value, data.preferences[i].origin);
+            }
+          }
+          if (data.rights) {
+            for (var i = 0; i &lt; data.rights.length; ++i) {
+              action.rights[action.rights.length] = new Right(data.rights[i].user, data.rights[i].group, data.rights[i].level, data.rights[i].allow == "true", data.rights[i].origin)
+            }
+          }
+          if (data.deletePrevious) {
+            action.deletePrevious = true;
+            self.duplicates.push(action.serializedTargetDocument());
+          }
+          if (action.isTooLong()) {
+            self.tooLongs.push(action);
+          }
+          return action;
+        };
+
+        if (data) {
+          for (var i = 0; i &lt; data.length; ++i) {
+            self.actions.push(parseAction(data[i], false));
+          }
+        }
+        // Plan is loaded
+        self.isComputing(false);
+        console.log('INFO: Plan have been parsed.');
+      }).fail(function () {
+        new XWiki.widgets.Notification('Failed to load the computed plan', 'error');
+        //TODO: being able to restart the computation
+      });
+    };
+    
+    self.startBreakageDetection = function () {
+      self.isPlanRequested(false);
+      self.isBreakageListRequested(true);
+      self.startComputationJob('startBreakageDetection', function (data) {
+        self.jobId = data.jobId;
+        self.logs.removeAll();
+        self.getJobStatusAndLogs('breakagedetection', function() { self.getBreakages(); });
+      });
+    };
+    
+    /**
+     * Get breakage list that have been computed, in order to display it.
+     */
+    self.getBreakages = function () {
+      $.getJSON(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
+        'action': 'printBreakages'
+      }).done(function (data) {
+        for (var i = 0; i &lt; data.length; ++i) {
+          self.breakageList.push(new Breakage(data[i].documentReference, data[i].locationParent, data[i].actualParent));
+        }
+        // Plan is loaded
+        self.isComputing(false);
+      }).fail(function () {
+        new XWiki.widgets.Notification('Failed to load the breakages', 'error');
+        //TODO: being able to restart the computation
+      });
+    };
+    
+    /**
+     * Called when the user click on the "exclude page" button.
+     */
+    self.excludePage = function() {
+      var page = this.serializedSourceDocument();
+      if (confirm('Are you sure to exclude the page ['+page+'] from the migration? The plan may be recomputed.')) {
+        self.configuration.excludedPages(appendToString(self.configuration.excludedPages(), page));
+        // Adding an exclusion can seriously change the plan (if children are moved), so we re-compute it
+        if (!self.configuration.dontMoveChildren()) {
+          self.computePlan();
+        } else {
+          var sourceDoc = this.sourceDocument;
+          var detectAction = function (action) {
+            return action.sourceDocument.equals(sourceDoc);
+          };
+          if (this.parent) {
+            this.parent.children.remove(detectAction);
+          } else {
+            self.actions.remove(detectAction);
+          }
+        }
+      }
+    };
+
+    /**
+     * Called when the user click on the "exclude space" button.
+     */
+    self.excludeSpace = function() {
+      var space = XWiki.Model.serialize(this.sourceDocument.extractReference(XWiki.EntityType.SPACE));
+      if (confirm('Are you sure to exclude the space ['+space+'] from the migration? The plan will be recomputed.')) {
+        self.configuration.excludedSpaces(appendToString(self.configuration.excludedSpaces(), space));
+        self.computePlan();
+      }
+    };
+
+    /**
+     * Called when the user click on the "set parent" button.
+     */
+    self.setParent = function () {
+      // The reference needs to be complete in order to use XWiki.Document#getRestURL()
+      if (this.sourceDocument.getRoot().type != XWiki.EntityType.WIKI) {
+        this.sourceDocument.appendParent(xm.documentReference.extractReference(XWiki.EntityType.WIKI))
+      };
+      // First get the current parent
+      var restURL = new XWiki.Document(this.sourceDocument).getRestURL('', 'media=json');
+      var notification = new XWiki.widgets.Notification('Getting information', 'inprogress');
+      $.getJSON(restURL).done(function (data) {
+        notification.hide();
+        // Now ask the new parent to set
+        var parent = prompt("Enter the fullName of the parent that you want to set: (this will be applied immediatly)", data.parent);
+        if (parent != null) {
+          notification = new XWiki.widgets.Notification('Saving...', 'inprogress');
+          // Set the new parent using the REST API
+          $.ajax(restURL, {
+            dataType: 'json',
+            data:   {'parent': parent},
+            method: 'PUT'
+          }).done(function(data) {
+            // TODO: put something here, and handle error;
+            self.computePlan();
+            notification.replace(new XWiki.widgets.Notification('New parent was set, computing the new plan.', 'done'));
+          }).fail(function() {
+            notification.replace(new XWiki.widgets.Notification('Failed to save the page.', 'error'));
+          });
+        }
+      }).fail(function() {
+        notification.replace(new XWiki.widgets.Notification('Failed to get the current parent of the page which may not exist.', 'error'));
+      });
+    };
+    
+    /**
+     * Called when the user clicks on "execute plan"
+     */
+    self.executePlan = function () {
+      if (!confirm('Are you sure? This operation cannot be undone.')) {
+        return;
+      }
+      self.isPlanExecuting(true);
+      self.progress(0);
+      
+      var getDisabledActions = function (action) {
+        var disabledActions = '';
+        if (!action.enabled()) {
+          disabledActions += action.serializedSourceDocument() + '_page,';
+        }
+        for (var i = 0; i &lt; action.preferences.length; ++i) {
+          var preference = action.preferences[i];
+          if (!preference.enabled()) {
+            disabledActions += action.serializedSourceDocument() + '_preference_' + i + ',';
+          }
+        }
+        for (var i = 0; i &lt; action.rights.length; ++i) {
+          var right = action.rights[i];
+          if (!right.enabled()) {
+            disabledActions += action.serializedSourceDocument() + '_right_' + i + ',';
+          }
+        }
+        for (var i = 0; i &lt; action.children().length; ++i) {
+          disabledActions += getDisabledActions(action.children()[i]);
+        }
+        return disabledActions;
+      };
+      
+      var disabledActions = '';
+      for (var i = 0; i &lt; self.actions().length; ++i) {
+        var action = self.actions()[i];
+        disabledActions += getDisabledActions(action);
+      }
+      
+      $.ajax(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
+        'data': {
+          'action'               : 'executePlan',
+          'addRedirection'       : self.configuration.addRedirection(),
+          'disabledActions'      : disabledActions
+        },
+        'method': 'POST',
+        'data-type': 'json'
+      }).done(function (data) {
+        self.jobId = data.jobId;
+        self.logs.removeAll();
+        self.getJobStatusAndLogs('executemigrationplan', function() { self.success(true); });
+      }).fail(function () {
+        console.log('ERROR: Failed to execute the plan.');
+      });
+    }
+    
+    /**
+     * Clean the plan to free the memory on the server.
+     */
+    self.cleanPlan = function() {
+      $.ajax(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
+        'data': {
+          'action': 'cleanPlan'},
+        'method': 'POST'
+      }).done(function() {
+        self.actions.removeAll();
+        self.duplicates.removeAll();
+        self.tooLongs.removeAll();
+        self.isPlanRequested(false);
+        self.logs.removeAll();
+      });
+    };
+    
+    // Initialize the XClasses field.
+    self.initXClasses();
+    
+  };
+
+  // Activates knockout.js
+  ko.applyBindings(new AppViewModel());
+});
+</code>
+    </property>
+    <property>
+      <name>Live view</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
+  <object>
+    <name>Confluence.Tools.NestedPagesMigration</name>
+    <number>3</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>e4b88e81-def4-4b11-b9b5-365c0cb18d76</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery'], function ($) {
+  $(document).ready(function() {
+    $(".edit_section").remove();
+  });
+});
+</code>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse/>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
+  <object>
+    <name>Confluence.Tools.NestedPagesMigration</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>baaeef41-3316-42f8-ad1b-3a008f19dd5c</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>#template('colorThemeInit.vm')
+
+.migration-plan .documentName {
+  cursor: pointer;
+}
+
+.log {
+  background-color: $theme.pageContentBackgroundColor;
+}
+
+.log-title {
+  text-transform: uppercase;
+  font-size: 0.9em;
+  font-weight: bold;
+}</code>
+    </property>
+    <property>
+      <contentType>CSS</contentType>
+    </property>
+    <property>
+      <name>CSS</name>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
+</xwikidoc>
