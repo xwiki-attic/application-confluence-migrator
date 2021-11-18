@@ -131,6 +131,14 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
         profile.resetMigration();
     }
 
+    /**
+     * Finish the migration and do the necessary cleanup.
+     */
+    public void finishMigration()
+    {
+        profile.finishMigration();
+    }
+
     @Override
     protected String getErrorKey()
     {

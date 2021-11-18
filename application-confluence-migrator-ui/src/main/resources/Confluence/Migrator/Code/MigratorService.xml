@@ -73,6 +73,9 @@
     #end
     #set ($discard = $xwiki.getXWiki().saveDocument($profileDoc.document, 'Update profile steps.', $xcontext.context))
   #end
+  #if ($request.action == 'finishMigration')
+    #set ($discard = $services.confluencemigrator.profile.finishMigration())
+  #end
 #end
 {{/velocity}}</content>
 </xwikidoc>

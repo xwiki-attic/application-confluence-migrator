@@ -81,4 +81,9 @@ public interface ConfluenceMigratorProfile
      */
     void resetMigration();
 
+    /**
+     * Finish the migration and do the necessary cleanup.
+     */
+    void finishMigration();
+
 }

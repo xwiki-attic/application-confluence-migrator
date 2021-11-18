@@ -240,10 +240,20 @@ require(['jquery', 'xwiki-events-bridge', 'SmartWizard'], function($, xev, Smart
   var initWizard = function() {
 
     // Toolbar extra buttons
-    var btnFinish = $('&lt;button&gt;&lt;/button&gt;').text('Finish')
-                                          .attr('id', 'btn-finish')
-                                          .addClass('btn btn-info hidden')
-                                          .on('click', function(){ alert('Finish Clicked'); });
+    var btnFinish = $('&lt;button/&gt;')
+      .text('Finish')
+      .attr({'id': 'btn-finish', 'class': 'btn btn-info hidden'})
+      .on('click', function() {
+        var serviceDoc = new XWiki.Document('MigratorService', 'Confluence.Migrator.Code');
+        var queryString = $.param({
+          'action': 'finishMigration',
+          'outputSyntax': 'plain',
+        });
+        $.post(serviceDoc.getURL('get', queryString))
+        .done(function() {
+          window.location.href = new XWiki.Document('WebHome', 'Confluence.Migrator').getURL();
+        });
+      });
     var btnCancel = $('&lt;button&gt;&lt;/button&gt;').text('Cancel')
                                           .attr('id', 'btn-cancel')
                                           .addClass('btn btn-danger')

@@ -308,4 +308,19 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
             }
         }
     }
+
+    @Override
+    public void finishMigration()
+    {
+        XWikiContext context = contextProvider.get();
+        XWiki xwiki = context.getWiki();
+        try {
+            XWikiDocument profilesHomePageDoc = xwiki.getDocument(PROFILES_HOMEPAGE_REFERENCE, context);
+            BaseObject activeProfileObj = profilesHomePageDoc.getXObject(ACTIVE_PROFILE_CLASS_REFERENCE);
+            activeProfileObj.setStringValue(PROFILE, "");
+            xwiki.saveDocument(profilesHomePageDoc, "Clean profile on finished migration", context);
+        } catch (XWikiException e) {
+            logger.error("Failed to get profiles homepage.", e);
+        }
+    }
 }
