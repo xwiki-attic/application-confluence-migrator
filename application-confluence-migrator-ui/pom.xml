@@ -91,6 +91,13 @@
       <artifactId>confluence-xml</artifactId>
       <version>${confluence.xml.version}</version>
       <scope>runtime</scope>
+      <!-- Conflict with higher version from xwiki-pro-macros (PDF Viewer) dependency -->
+      <exclusions>
+        <exclusion>
+          <groupId>org.xwiki.platform</groupId>
+          <artifactId>xwiki-platform-model</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <!-- Filter Streams Converter Application -->
@@ -107,6 +114,13 @@
       <version>${nestedpages.migrator.version}</version>
       <type>xar</type>
       <scope>runtime</scope>
+      <!-- Conflict with higher version from xwiki-pro-macros (PDF Viewer) dependency -->
+      <exclusions>
+        <exclusion>
+          <groupId>org.xwiki.platform</groupId>
+          <artifactId>xwiki-platform-webjars-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <!-- Confluence Macros -->
