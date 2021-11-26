@@ -259,18 +259,28 @@ require(['jquery', 'xwiki-events-bridge', 'SmartWizard'], function($, xev, Smart
                                           .addClass('btn btn-danger')
                                           .on('click', function(){ confluenceMigrator.smartWizard("reset"); });
 
-    // Smart Wizard
-    confluenceMigrator.smartWizard({
-      selected: 0,
-      theme: 'arrows',
-      transition: {
-        animation: 'none',
-      },
-      toolbarSettings: {
-        toolbarPosition: 'bottom',
-        toolbarExtraButtons: [btnFinish, btnCancel]
-      },
-      autoAdjustHeight: false
+    var serviceDoc = new XWiki.Document('MigratorService', 'Confluence.Migrator.Code');
+    var queryString = $.param({
+      'action': 'getStepsTaken',
+      'outputSyntax': 'plain'
+    });
+
+    $.post(serviceDoc.getURL('get', queryString))
+     .done(function(data) {
+      // Smart Wizard.
+      // We start the wizzard only when we know what is the initial step by checking the active profile' steps taken.
+      confluenceMigrator.smartWizard({
+        selected: data.stepsTaken,
+        theme: 'arrows',
+        transition: {
+          animation: 'none',
+        },
+        toolbarSettings: {
+          toolbarPosition: 'bottom',
+          toolbarExtraButtons: [btnFinish, btnCancel]
+        },
+        autoAdjustHeight: false
+      });
     });
 
     // Leave step event

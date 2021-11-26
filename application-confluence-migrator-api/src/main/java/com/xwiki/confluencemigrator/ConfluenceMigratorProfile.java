@@ -86,4 +86,11 @@ public interface ConfluenceMigratorProfile
      */
     void finishMigration();
 
+    /**
+     * Get the steps taken value to know where to resume the migration.
+     *
+     * @return the steps taken
+     */
+    long getStepsTaken();
+
 }

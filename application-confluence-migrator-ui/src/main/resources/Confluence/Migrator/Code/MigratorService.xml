@@ -76,6 +76,10 @@
   #if ($request.action == 'finishMigration')
     #set ($discard = $services.confluencemigrator.profile.finishMigration())
   #end
+  #if ($request.action == 'getStepsTaken')
+    #set ($discard = $response.setContentType('application/json'))
+    $jsontool.serialize({'stepsTaken': $services.confluencemigrator.profile.stepsTaken})
+  #end
 #end
 {{/velocity}}</content>
 </xwikidoc>

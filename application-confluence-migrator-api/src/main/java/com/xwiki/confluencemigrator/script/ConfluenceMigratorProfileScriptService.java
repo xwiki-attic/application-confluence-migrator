@@ -139,6 +139,16 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
         profile.finishMigration();
     }
 
+    /**
+     * Get the steps taken value to know where to resume the migration.
+     *
+     * @return the steps taken
+     */
+    public long getStepsTaken()
+    {
+        return profile.getStepsTaken();
+    }
+
     @Override
     protected String getErrorKey()
     {
