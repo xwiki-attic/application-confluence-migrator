@@ -332,7 +332,7 @@ require(['jquery', 'xwiki-events-bridge', 'SmartWizard'], function($, xev, Smart
   XWiki.domIsLoaded &amp;&amp; initWizard();
 
   $(document).on('xwiki:html5upload:fileFinished', function() {
-    var fileName = $('#attachform span.file-name').html();
+    var fileName = $('#attachform .upload-status:last-of-type span.file-name').html();
     var serviceDoc = new XWiki.Document('MigratorService', 'Confluence.Migrator.Code');
     var queryString = $.param({
       'action': 'getFilePath',
