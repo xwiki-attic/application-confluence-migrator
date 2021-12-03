@@ -551,7 +551,7 @@ input {
 }
 /* Hide unneeded elements from the attach form */
 #attachform legend,
-#_attachments .noitems {
+#_attachments {
   display: none;
 }</code>
     </property>

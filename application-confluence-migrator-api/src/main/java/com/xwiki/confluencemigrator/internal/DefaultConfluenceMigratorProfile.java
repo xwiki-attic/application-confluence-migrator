@@ -62,6 +62,8 @@ import com.xwiki.confluencemigrator.ConfluenceMigratorProfile;
 @Singleton
 public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfile
 {
+    private static final String MIGRATION_HOMEPAGE = "Confluence.Migrator.WebHome";
+
     private static final String MIGRATION_START_DATE = "migrationStartDate";
 
     private static final String STEPS_TAKEN = "stepsTaken";
@@ -194,7 +196,7 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
     {
         XWikiContext context = contextProvider.get();
         XWiki xwiki = context.getWiki();
-        DocumentReference pageRef = resolver.resolve("Confluence.Migrator.WebHome");
+        DocumentReference pageRef = resolver.resolve(MIGRATION_HOMEPAGE);
         AttachmentReference attachmentRef = new AttachmentReference(fileName, pageRef);
 
         try {
@@ -202,8 +204,6 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
             XWikiAttachment attachment = pageDoc.getAttachment(fileName);
             if (attachment != null) {
                 String path = fstools.getAttachmentFileProvider(attachmentRef).getAttachmentContentFile().getPath();
-                // Delete the attachment from the XWiki document, relying on the temporary file in the file store.
-                pageDoc.removeAttachment(attachment);
                 return String.format("file:%s", path);
             }
         } catch (XWikiException e) {
@@ -250,9 +250,21 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
                 activeProfileObj.setStringValue(PROFILE, "");
                 context.getWiki().saveDocument(profilesHomePageDoc, "Reset the migration.", context);
             }
+            removeMigrationAttachments();
         } catch (XWikiException e) {
             logger.error("Failed to reset the migration.", e);
         }
+    }
+
+    private void removeMigrationAttachments() throws XWikiException
+    {
+        XWikiContext context = contextProvider.get();
+        XWiki xwiki = context.getWiki();
+        XWikiDocument migrationDoc = xwiki.getDocument(resolver.resolve(MIGRATION_HOMEPAGE), context);
+        for (XWikiAttachment attachment : migrationDoc.getAttachmentList()) {
+            migrationDoc.removeAttachment(attachment);
+        }
+        xwiki.saveDocument(migrationDoc, "Attachments deleted.", context);
     }
 
     private void clearConfluenceDocuments(XWikiDocument profileDoc, BaseObject profileObj, XWikiContext context,
@@ -319,6 +331,7 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
             BaseObject activeProfileObj = profilesHomePageDoc.getXObject(ACTIVE_PROFILE_CLASS_REFERENCE);
             activeProfileObj.setStringValue(PROFILE, "");
             xwiki.saveDocument(profilesHomePageDoc, "Clean profile on finished migration", context);
+            removeMigrationAttachments();
         } catch (XWikiException e) {
             logger.error("Failed to get profiles homepage.", e);
         }
