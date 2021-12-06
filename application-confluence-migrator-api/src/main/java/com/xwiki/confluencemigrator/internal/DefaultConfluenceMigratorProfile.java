@@ -235,14 +235,7 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
         XWiki xwiki = context.getWiki();
 
         try {
-            XWikiDocument profileDoc = xwiki.getDocument(resolver.resolve(getActiveProfile()), context);
-            BaseObject profileObj = profileDoc.getXObject(PROFILE_CLASS_REFERENCE);
-            // Remove document if it has just been created or revert it to the previous version.
-            clearConfluenceDocuments(profileDoc, profileObj, context, xwiki);
-            // Clear steps and migration start date in the profile document.
-            profileObj.setLongValue(ACTIVE_STEP, 0);
-            profileObj.setLongValue(STEPS_TAKEN, 0);
-            profileObj.setDateValue(MIGRATION_START_DATE, null);
+            cleanActiveProfile(context, xwiki, true);
 
             XWikiDocument profilesHomePageDoc = xwiki.getDocument(PROFILES_HOMEPAGE_REFERENCE, context);
             BaseObject activeProfileObj = profilesHomePageDoc.getXObject(ACTIVE_PROFILE_CLASS_REFERENCE);
@@ -254,6 +247,20 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
         } catch (XWikiException e) {
             logger.error("Failed to reset the migration.", e);
         }
+    }
+
+    private void cleanActiveProfile(XWikiContext context, XWiki xwiki, boolean resetMigration) throws XWikiException
+    {
+        XWikiDocument profileDoc = xwiki.getDocument(resolver.resolve(getActiveProfile()), context);
+        BaseObject profileObj = profileDoc.getXObject(PROFILE_CLASS_REFERENCE);
+        if (resetMigration) {
+         // Remove document if it has just been created or revert it to the previous version.
+            clearConfluenceDocuments(profileDoc, profileObj, context, xwiki);
+        }
+        // Clear steps and migration start date in the profile document.
+        profileObj.setLongValue(ACTIVE_STEP, 0);
+        profileObj.setLongValue(STEPS_TAKEN, 0);
+        profileObj.setDateValue(MIGRATION_START_DATE, null);
     }
 
     private void removeMigrationAttachments() throws XWikiException
@@ -327,6 +334,7 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
         XWikiContext context = contextProvider.get();
         XWiki xwiki = context.getWiki();
         try {
+            cleanActiveProfile(context, xwiki, false);
             XWikiDocument profilesHomePageDoc = xwiki.getDocument(PROFILES_HOMEPAGE_REFERENCE, context);
             BaseObject activeProfileObj = profilesHomePageDoc.getXObject(ACTIVE_PROFILE_CLASS_REFERENCE);
             activeProfileObj.setStringValue(PROFILE, "");
