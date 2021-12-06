@@ -283,14 +283,14 @@
           if (importCheck) {
             try {
               if (importedPageList.get(ptitle)) {
-                log.info(services.localization.render('confluence.migrator.spaceanalysis.pagefound', [ptitle]))
+                log.warn(services.localization.render('confluence.migrator.spaceanalysis.pagefound', [ptitle]))
                 pagesImported.add(ptitle)
                 importedPageList.remove(ptitle)
               } else {
                 if (page.status=="archived") {
                   log.warn(services.localization.render('confluence.migrator.spaceanalysis.pagearchived', [ptitle]))
                 } else {
-                  log.warn(services.localization.render('confluence.migrator.spaceanalysis.pagenotfound', [ptitle]))
+                  log.info(services.localization.render('confluence.migrator.spaceanalysis.pagenotfound', [ptitle]))
                   pagesNotImported.add(ptitle)
                   def docUrl = baseUrl + page._links.webui
                   pagesNotImportedOutput += "* ${ptitle} ${docUrl}\n"
