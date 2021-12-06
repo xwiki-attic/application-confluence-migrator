@@ -27,6 +27,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -254,8 +255,14 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
         XWikiDocument profileDoc = xwiki.getDocument(resolver.resolve(getActiveProfile()), context);
         BaseObject profileObj = profileDoc.getXObject(PROFILE_CLASS_REFERENCE);
         if (resetMigration) {
-         // Remove document if it has just been created or revert it to the previous version.
+            // Remove document if it has just been created or revert it to the previous version.
             clearConfluenceDocuments(profileDoc, profileObj, context, xwiki);
+            // Remove all the reports.
+            for (DocumentReference childRef : profileDoc.getChildrenReferences(context)) {
+                if (!Objects.equals(childRef, profileDoc.getDocumentReference())) {
+                    xwiki.deleteDocument(xwiki.getDocument(childRef, context), context);
+                }
+            }
         }
         // Clear steps and migration start date in the profile document.
         profileObj.setLongValue(ACTIVE_STEP, 0);
