@@ -25,21 +25,13 @@
   <parent>
     <groupId>com.xwiki.confluence</groupId>
     <artifactId>application-confluence-migrator</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1.1-SNAPSHOT</version>
   </parent>
   <artifactId>application-confluence-migrator-ui</artifactId>
   <packaging>xar</packaging>
   <name>Confluence Migrator Application - UI</name>
   <description>Migrates content from Confluence to XWiki</description>
   <properties>
-    <!-- The list of documents that have an implicit unlimited free license. The users can view these documents without
-      buying a license or getting a trial license, but they cannot edit or delete them. -->
-    <xwiki.extension.licensing.publicDocuments>
-      Confluence.Migrator.ApplicationsPanelEntry
-    </xwiki.extension.licensing.publicDocuments>
-    <xwiki.extension.licensing.excludedDocuments>
-      Confluence.Migrator.WebHome
-    </xwiki.extension.licensing.excludedDocuments>
     <!-- Name to display by the Extension Manager -->
     <xwiki.extension.name>Confluence Migrator</xwiki.extension.name>
     <xwiki.extension.category>application</xwiki.extension.category>
@@ -51,39 +43,6 @@
       <groupId>com.xwiki.confluence</groupId>
       <artifactId>application-confluence-migrator-api</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <!-- This is a paid application. -->
-      <groupId>com.xwiki.licensing</groupId>
-      <artifactId>application-licensing-licensor-api</artifactId>
-      <version>${licensing.version}</version>
-      <!-- Need to be excluded from licensing upon licensing parent update to version 12.10. -->
-      <exclusions>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.velocity</groupId>
-          <artifactId>velocity-tools</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.velocity</groupId>
-          <artifactId>velocity</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.xwiki.platform</groupId>
-          <artifactId>xwiki-platform-bridge</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.xwiki.commons</groupId>
-          <artifactId>xwiki-commons-velocity</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.xwiki.platform</groupId>
-          <artifactId>xwiki-platform-model</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <!-- Confluence XML -->
