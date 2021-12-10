@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.confluence</groupId>
     <artifactId>application-confluence-migrator</artifactId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.0.1</version>
   </parent>
   <artifactId>application-confluence-migrator-ui</artifactId>
   <packaging>xar</packaging>
