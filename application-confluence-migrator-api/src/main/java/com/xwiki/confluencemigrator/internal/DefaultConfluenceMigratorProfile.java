@@ -134,7 +134,8 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 return true;
             } else {
-                throw new Exception("HTTP response code: " + String.valueOf(responseCode));
+                throw new Exception(String.format("HTTP response code: %s. %s.", String.valueOf(responseCode),
+                    connection.getResponseMessage()));
             }
         } catch (XWikiException | IOException e) {
             logger.warn("Failed to get Confluence data from [{}].", profileRef, e);

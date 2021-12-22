@@ -24,7 +24,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.context.Execution;
 import org.xwiki.stability.Unstable;
 
 import com.xwiki.confluencemigrator.ConfluenceMigratorPrerequisites;
@@ -43,12 +42,6 @@ public class ConfluenceMigratorPrerequisitesScriptService extends AbstractConflu
      * The key under which the last encountered error is stored in the current execution context.
      */
     static final String ERROR_KEY = "scriptservice.confluencemigrator.prerequisites.error";
-
-    /**
-     * Provides access to the current context.
-     */
-    @Inject
-    protected Execution execution;
 
     @Inject
     private ConfluenceMigratorPrerequisites prerequisites;

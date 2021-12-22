@@ -26,7 +26,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.context.Execution;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 
@@ -46,12 +45,6 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
      * The key under which the last encountered error is stored in the current execution context.
      */
     static final String ERROR_KEY = "scriptservice.confluencemigrator.profile.error";
-
-    /**
-     * Provides access to the current context.
-     */
-    @Inject
-    protected Execution execution;
 
     @Inject
     private ConfluenceMigratorProfile profile;
