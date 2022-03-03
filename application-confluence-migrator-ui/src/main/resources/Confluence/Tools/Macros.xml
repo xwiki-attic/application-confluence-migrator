@@ -64,7 +64,8 @@
   ## Display active profile basic parameters : URL and Space name
   #macro (displayActiveProfileBasicParameters $activeProfile)
     #set ($activeProfileDoc = $xwiki.getDocument($activeProfile))
-    #set ($confluenceSpaceURL = $activeProfileDoc.getValue('url') + '/wiki/spaces/' + $activeProfileDoc.getValue('space'))
+    #set ($baseUrl = $services.confluencemigrator.profile.getBaseURL($activeProfileDoc.documentReference))
+    #set ($confluenceSpaceURL = $baseUrl + '/spaces/' + $activeProfileDoc.getValue('space'))
     * **$services.localization.render('confluence.migrator.profile')** : $activeProfileDoc.title $services.localization.render(
       'confluence.migrator.profile.edit', ['[[', "&gt;&gt;path:$activeProfileDoc.getURL('edit')||target='_blank']]"])
     * **$services.localization.render('confluence.migrator.profile.confluenceSpaceURL')** : [[$confluenceSpaceURL||target="_blank"]]
