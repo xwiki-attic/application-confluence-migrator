@@ -53,11 +53,12 @@
   def username = null
   def token = null
   def activeProfile = services.confluencemigrator.profile.activeProfile
+  def activeProfileDoc = xwiki.getDocument(activeProfile)
+  def profileObj = activeProfileDoc.getObject("Confluence.Tools.MigrationProfileClass")
 
   if(activeProfile) {
-    def profileObj = xwiki.getDocument(activeProfile).getObject("Confluence.Tools.MigrationProfileClass")
+    baseUrl = services.confluencemigrator.profile.getBaseURL(activeProfileDoc.documentReference)
     space = profileObj.getProperty("space").value
-    baseUrl = profileObj.getProperty("url").value
     username = profileObj.getProperty("username").value
     token = profileObj.getProperty("token").value
   }
@@ -69,18 +70,10 @@
   def docsHierarchyTooLong = ""
   def importCheck = false
 
-  def activeProfileDoc = xwiki.getDocument(activeProfile)
-
   if (request.importcheck=="1") {
      importCheck = true
   }
 
-  if(baseUrl.endsWith('/')) {
-    baseUrl = baseUrl.substring(0, baseUrl.length() - 1)
-  }
-  if(!baseUrl.endsWith('/wiki')) {
-    baseUrl += '/wiki'
-  }
   def searchUrl = "${baseUrl}/rest/api/content?type=page&amp;spaceKey=${space}&amp;limit=${limit}"
   if (request.ancestor) {
     searchUrl += "&amp;expand=ancestors&amp;start="

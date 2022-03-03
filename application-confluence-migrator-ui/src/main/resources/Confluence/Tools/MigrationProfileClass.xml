@@ -51,7 +51,7 @@
       <disabled>0</disabled>
       <hint/>
       <name>activeStep</name>
-      <number>5</number>
+      <number>6</number>
       <numberType>long</numberType>
       <prettyName>Active step</prettyName>
       <size>30</size>
@@ -60,6 +60,21 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
     </activeStep>
+    <customUrl>
+      <customDisplay/>
+      <defaultValue>0</defaultValue>
+      <disabled>0</disabled>
+      <displayFormType>checkbox</displayFormType>
+      <displayType/>
+      <hint/>
+      <name>customUrl</name>
+      <number>4</number>
+      <prettyName>customUrl</prettyName>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+    </customUrl>
     <migrationStartDate>
       <customDisplay/>
       <dateFormat>dd/MM/yyyy HH:mm:ss</dateFormat>
@@ -67,7 +82,7 @@
       <emptyIsToday>0</emptyIsToday>
       <hint/>
       <name>migrationStartDate</name>
-      <number>8</number>
+      <number>9</number>
       <picker>1</picker>
       <prettyName>Migration start date</prettyName>
       <size>20</size>
@@ -81,7 +96,7 @@
       <disabled>0</disabled>
       <hint/>
       <name>space</name>
-      <number>4</number>
+      <number>5</number>
       <picker>1</picker>
       <prettyName>space</prettyName>
       <size>30</size>
@@ -95,7 +110,7 @@
       <disabled>0</disabled>
       <hint/>
       <name>stepsTaken</name>
-      <number>6</number>
+      <number>7</number>
       <numberType>long</numberType>
       <prettyName>Steps taken</prettyName>
       <size>30</size>
@@ -125,7 +140,7 @@
       <disabled>0</disabled>
       <hint/>
       <name>totalPages</name>
-      <number>7</number>
+      <number>8</number>
       <numberType>long</numberType>
       <prettyName>Total Confluence pages</prettyName>
       <size>30</size>

@@ -106,25 +106,47 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
     private QueryManager queryManager;
 
     @Override
-    public boolean checkConnection(DocumentReference profileRef) throws Exception
+    public String getBaseURL(DocumentReference profileRef) throws XWikiException
     {
         XWikiContext context = contextProvider.get();
         XWikiDocument profileDoc;
+        String baseURL = "";
+        profileDoc = context.getWiki().getDocument(profileRef, context);
+        BaseObject profileObj = profileDoc.getXObject(PROFILE_CLASS_REFERENCE);
+        baseURL = profileObj.getStringValue("url");
+        int customURL = profileObj.getIntValue("customUrl");
+
+        // We use this parameter as a way to provide backwards compatibility
+        if (customURL == 0) {
+            if (!baseURL.endsWith(WIKI_ENDING)) {
+                baseURL += WIKI_ENDING;
+            }
+        }
+        // The following line are to allow multiple ways to provide the URL
+        // either as a full URL or just the domain
+        if (!baseURL.startsWith("http")) {
+            baseURL = "https://" + baseURL; 
+        }
+        if (baseURL.endsWith("/")) {
+            baseURL = baseURL.substring(0, baseURL.length() - 1);
+        }
+        return baseURL;
+    }
+
+    @Override
+    public boolean checkConnection(DocumentReference profileRef) throws Exception
+    {
         HttpURLConnection connection = null;
+        XWikiContext context = contextProvider.get();
+        XWikiDocument profileDoc;
+        String baseURL = "";
         try {
             profileDoc = context.getWiki().getDocument(profileRef, context);
             BaseObject profileObj = profileDoc.getXObject(PROFILE_CLASS_REFERENCE);
             String space = profileObj.getStringValue(SPACE);
-            String baseURL = profileObj.getStringValue("url");
             String username = profileObj.getStringValue("username");
             String token = profileObj.getStringValue("token");
-
-            if (baseURL.endsWith("/")) {
-                baseURL = baseURL.substring(0, baseURL.length() - 1);
-            }
-            if (!baseURL.endsWith(WIKI_ENDING)) {
-                baseURL += WIKI_ENDING;
-            }
+            baseURL = getBaseURL(profileRef);
             String searchURL = String.format("%s/rest/api/content?type=page&spaceKey=%s", baseURL, space);
             String authString = Base64.getEncoder().encodeToString(String.format("%s:%s", username, token).getBytes());
             URL url = new URL(searchURL);
@@ -134,11 +156,12 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 return true;
             } else {
-                throw new Exception(String.format("HTTP response code: %s. %s.", String.valueOf(responseCode),
-                    connection.getResponseMessage()));
+                throw new Exception(String.format(
+                   "Failed to check Confluence Connection. HTTP response code for url %s: %s. %s.", 
+                   searchURL, String.valueOf(responseCode), connection.getResponseMessage()));
             }
         } catch (XWikiException | IOException e) {
-            logger.warn("Failed to get Confluence data from [{}].", profileRef, e);
+            logger.warn("Failed to check Confluence Connection from [{}] and url %s.", profileRef, baseURL, e);
             throw e;
         } finally {
             if (connection != null) {

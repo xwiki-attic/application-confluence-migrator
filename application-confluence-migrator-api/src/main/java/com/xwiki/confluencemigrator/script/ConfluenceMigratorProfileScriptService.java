@@ -50,6 +50,22 @@ public class ConfluenceMigratorProfileScriptService extends AbstractConfluenceMi
     private ConfluenceMigratorProfile profile;
 
     /**
+     * Computes the Confluence baseURL from the Profile configuration.
+     *
+     * @param profileRef the reference of the profile containing connection details
+     * @return the baseURL of the instance
+     */
+    public String getBaseURL(DocumentReference profileRef)
+    {
+        try {
+            return profile.getBaseURL(profileRef);
+        } catch (Exception e) {
+            setError(e);
+            return null;
+        }
+    }
+
+    /**
      * Check the connection with the details from the profile.
      *
      * @param profileRef the reference of the profile containing connection details

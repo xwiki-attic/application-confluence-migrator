@@ -48,7 +48,7 @@
     #set($profileTitle = $tdoc.title)
   #end
   #if ($xcontext.action == 'edit')
-    {{html clean="false"}}
+    {{html clean="false" wiki="true"}}
       &lt;div class="xform"&gt;
         &lt;dl&gt;
           &lt;dt&gt;
@@ -60,12 +60,13 @@
             &lt;/span&gt;
           &lt;/dt&gt;
           &lt;dd&gt;
-            &lt;input type="text" id="title" name="title" value="$!profileTitle" size="60" /&gt;
+            &lt;input type="text" id="title" name="title" value="$!{escapetool.xml($profileTitle)}" size="60" /&gt;
           &lt;/dd&gt;
           #foreach ($property in $migrationProfileProperties)
             #if (!$hiddenMigrationProfileProperties.contains($property.name))
               #set ($fiedID = "${migratorProfileClassName}_0_${property.name}")
               #set ($fieldValue = $migrationProfileObj.getProperty($property.name).value)
+              {{html clean="false"}}
               &lt;dt&gt;
                 &lt;label for="${fiedID}"&gt;
                   $services.localization.render($fiedID)
@@ -74,8 +75,9 @@
                   $services.localization.render("${fiedID}hint")
                 &lt;/span&gt;
               &lt;/dt&gt;
+              {{/html}}
               &lt;dd&gt;
-                &lt;input type="#if($property.name == 'token')password#{else}text#end" id="${fiedID}" name="${fiedID}" value="$!fieldValue" size="60" /&gt;
+                $doc.display($property.name)
               &lt;/dd&gt;
             #end
           #end

@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.model.reference.DocumentReference;
+import com.xpn.xwiki.XWikiException;
 
 /**
  * @version $Id$
@@ -31,6 +32,15 @@ import org.xwiki.model.reference.DocumentReference;
 @Role
 public interface ConfluenceMigratorProfile
 {
+    /**
+     * Computers the baseURL for from the profile configuration.
+     *
+     * @param profileRef the reference of the profile containing connection details
+     * @return a String with the base URL
+     * @throws XWikiException in case of XWiki Document access exception
+     */
+    String getBaseURL(DocumentReference profileRef) throws XWikiException;
+
     /**
      * Check the connection with the details from the profile.
      *
