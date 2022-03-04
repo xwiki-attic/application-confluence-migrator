@@ -40,7 +40,7 @@
 
 {{velocity}}
 = $services.localization.render('confluence.migration.export.title') =
-
-$services.localization.render('confluence.migration.export.description', ['[[', "&gt;&gt;${activeProfileDoc.getValue('url')}/wiki/spaces/exportspacexml.action?key=${activeProfileDoc.getValue('space')}||target='_blank']]"])
+#set ($baseUrl = $services.confluencemigrator.profile.getBaseURL($activeProfileDoc.documentReference))
+$services.localization.render('confluence.migration.export.description', ['[[', "&gt;&gt;$baseUrl/spaces/exportspacexml.action?key=${activeProfileDoc.getValue('space')}||target='_blank']]"])
 {{/velocity}}</content>
 </xwikidoc>
