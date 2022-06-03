@@ -90,6 +90,7 @@ confluence.migrator.profile.reports=Reports
 confluence.migrator.profile.checkConnection=Check connection
 confluence.migrator.profile.checkConnection.fail=Failed to connect to the Confluence server! Click on this message for details and contact sales@xwiki.com.
 confluence.migrator.profile.checkConnection.success=Test connection succeeded!
+confluence.migrator.profile.filepatherror=Error finding the file path of the attached file
 
 ### Prerequisites
 confluence.migrator.prerequisites.title=Prerequisites

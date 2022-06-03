@@ -337,10 +337,12 @@ require(['jquery', 'xwiki-events-bridge', 'SmartWizard'], function($, xev, Smart
     var queryString = $.param({
       'action': 'getFilePath',
       'outputSyntax': 'plain',
-      'fileName': encodeURIComponent(fileName)
+      'fileName': fileName
     });
     $.post(serviceDoc.getURL('get', queryString))
      .done(function(data) {
+       if (data.filePath==null)
+         alert('${services.localization.render("confluence.migrator.profile.filepatherror")}')
        $('#filter_input_properties_descriptor_source').val(data.filePath);
     });
   })
