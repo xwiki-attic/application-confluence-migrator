@@ -58,6 +58,12 @@
 {{/velocity}}
 
 {{velocity}}
+#set($ext = $services.extension.installed.getInstalledExtension("org.xwiki.contrib:application-nestedpagesmigrator-ui", "wiki:$xcontext.wiki"))
+#if($ext.version.toString().startsWith("0.8"))
+{{error}}
+The Nested Spaces Migrator 0.8 is currently incompatible with the Confluence Migrator. You will need to downgrade the extension to 0.7.x.
+{{/error}}
+#else
 #set ($discard = $xwiki.jsx.use('Confluence.Tools.NestedPagesMigration'))
 #set ($discard = $xwiki.ssx.use('Confluence.Tools.NestedPagesMigration'))
 #if (!$services.security.authorization.hasAccess('admin', $xcontext.userReference, $doc.documentReference.wikiReference))
@@ -301,6 +307,7 @@
   &lt;!-- /ko --&gt;
 &lt;!-- /ko --&gt;
 {{/html}}
+#end
 #end
 {{/velocity}}
 </content>
