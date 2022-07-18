@@ -27,26 +27,6 @@
     <artifactId>xwikisas-parent-platform</artifactId>
     <version>12.10</version>
   </parent>
-  <dependencyManagement>
-    <!-- Fix "Require upper bound dependencies error" -->
-    <dependencies>
-      <dependency>
-        <groupId>org.xwiki.platform</groupId>
-        <artifactId>xwiki-platform-rendering-async-default</artifactId>
-        <version>${platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.xwiki.platform</groupId>
-        <artifactId>xwiki-platform-filter-event-user</artifactId>
-        <version>${platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.xwiki.rendering</groupId>
-        <artifactId>xwiki-rendering-wikimodel</artifactId>
-        <version>${rendering.version}</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
   <groupId>com.xwiki.confluence</groupId>
   <artifactId>application-confluence-migrator</artifactId>
   <version>1.0.6-SNAPSHOT</version>
@@ -71,6 +51,26 @@
     <macro.job.version>2.0</macro.job.version>
     <listeneradmin.version>1.0.2</listeneradmin.version>
   </properties>
+  <dependencyManagement>
+    <!-- Fix "Require upper bound dependencies error" -->
+    <dependencies>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-rendering-async-default</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-filter-event-user</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.rendering</groupId>
+        <artifactId>xwiki-rendering-wikimodel</artifactId>
+        <version>${rendering.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <modules>
     <module>application-confluence-migrator-api</module>
     <module>application-confluence-migrator-ui</module>
