@@ -27,6 +27,26 @@
     <artifactId>xwikisas-parent-platform</artifactId>
     <version>12.10</version>
   </parent>
+  <dependencyManagement>
+    <!-- Fix "Require upper bound dependencies error" -->
+    <dependencies>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-rendering-async-default</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-filter-event-user</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.rendering</groupId>
+        <artifactId>xwiki-rendering-wikimodel</artifactId>
+        <version>${rendering.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <groupId>com.xwiki.confluence</groupId>
   <artifactId>application-confluence-migrator</artifactId>
   <version>1.0.6-SNAPSHOT</version>
@@ -54,6 +74,7 @@
   <modules>
     <module>application-confluence-migrator-api</module>
     <module>application-confluence-migrator-ui</module>
+    <module>application-confluence-migrator-xip</module>
   </modules>
   <!-- Even though this repository is already declared in the parent POM, we still explicitly redeclare it for
        convenience. This makes it simpler to build this project without having to declare this repository in one's own
