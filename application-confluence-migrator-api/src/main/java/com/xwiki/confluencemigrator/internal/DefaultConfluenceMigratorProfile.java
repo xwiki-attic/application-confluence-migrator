@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
@@ -91,6 +92,7 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
         new LocalDocumentReference(Arrays.asList(CONFLUENCE, TOOLS), "ActiveMigrationProfileClass");
 
     @Inject
+    @Named("currentmixed")
     private DocumentReferenceResolver<String> resolver;
 
     @Inject
