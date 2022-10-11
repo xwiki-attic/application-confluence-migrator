@@ -328,8 +328,9 @@ require(['jquery', 'xwiki-events-bridge', 'SmartWizard'], function($, xev, Smart
         $(".sw-btn-next").removeClass('hidden');
       }
     });
+    return true;
   }
-  XWiki.domIsLoaded &amp;&amp; initWizard();
+  XWiki.domIsLoaded &amp;&amp; initWizard() || $(document).on("xwiki:dom:loaded", initWizard)
 
   $(document).on('xwiki:html5upload:fileFinished', function() {
     var fileName = $('#attachform .upload-status:last-of-type span.file-name').html();
