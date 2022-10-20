@@ -152,7 +152,7 @@
   'input' : {
     'verbose' : 'false',
     'usersEnabled' : 'false',
-    'prefixedMacros' : 'chart, gallery',
+    'prefixedMacros' : 'chart, gallery, attachments',
     'baseURLs' : "$!activeProfileDoc.getValue('url')",
     'storeConfluenceDetailsEnabled': true
   },
