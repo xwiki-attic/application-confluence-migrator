@@ -210,13 +210,14 @@ The Nested Spaces Migrator 0.8 is currently incompatible with the Confluence Mig
   &lt;div class="row"&gt;
   &lt;div class="col-xs-12 col-md-6"&gt;
     &lt;input type="hidden" id="includedSpaces" data-bind="value: configuration.includedSpaces"&gt;
+    &lt;input type="hidden" id="excludedSpaces" data-bind="value: []"&gt;
   &lt;/div&gt;
   &lt;div class="col-xs-12 col-md-6"&gt;
     &lt;p&gt;&lt;button class="btn btn-default hidden" type="button" data-toggle="collapse" data-target="#advancedSettings" aria-expanded="false" aria-controls="advancedSettings"&gt;Advanced Settings&lt;/button&gt;&lt;/p&gt;
     &lt;dl id="advancedSettings" class="collapse well"&gt;
       &lt;!-- Exclude hidden pages --&gt;
       &lt;dt&gt;&lt;input type="checkbox" id="excludeHiddenPages" data-bind="checked: configuration.excludeHiddenPages"&gt; &lt;label for="excludeHiddenPages"&gt;Exclude hidden pages&lt;/label&gt;&lt;/dt&gt;
-      &lt;dd&gt;&lt;span class="xHint"&gt;Most of the hidden pages are techinal content. Moving them can break applications.&lt;/span&gt;&lt;/dd&gt;
+      &lt;dd&gt;&lt;span class="xHint"&gt;Most of the hidden pages are technical content. Moving them can break applications.&lt;/span&gt;&lt;/dd&gt;
       &lt;!-- Exclude class pages --&gt;
       &lt;dt&gt;&lt;input type="checkbox" id="excludeClassPages" data-bind="checked: configuration.excludeClassPages"&gt; &lt;label for="excludeClassPages"&gt;Exclude pages having a class&lt;/label&gt;&lt;/dt&gt;
       &lt;dd&gt;&lt;span class="xHint"&gt;The pages are technical and moving them can break applications.&lt;/span&gt;&lt;/dd&gt;
