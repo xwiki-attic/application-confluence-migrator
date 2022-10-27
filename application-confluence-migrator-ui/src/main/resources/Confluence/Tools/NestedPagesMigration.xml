@@ -209,7 +209,7 @@ The Nested Spaces Migrator 0.8 is currently incompatible with the Confluence Mig
 &lt;form class="xform"&gt;
   &lt;div class="row"&gt;
   &lt;div class="col-xs-12 col-md-6"&gt;
-    &lt;input type="hidden" id="includedSpaces" data-bind="value: configuration.includedSpaces"&gt;
+    &lt;input type="hidden" id="includedSpaces" data-bind="value: configuration.includedSpaces" data-valuefromprofile="$!escapetool.xml($xwiki.getDocument($services.confluencemigrator.profile.activeProfile).getValue('space'))"&gt;
     &lt;input type="hidden" id="excludedSpaces" data-bind="value: []"&gt;
   &lt;/div&gt;
   &lt;div class="col-xs-12 col-md-6"&gt;
@@ -688,7 +688,7 @@ The Nested Spaces Migrator 0.8 is currently incompatible with the Confluence Mig
     this.convertRights         = ko.observable(false);
     this.excludedPages         = ko.observable('');
     this.excludedSpaces        = ko.observable();
-    this.includedSpaces        = ko.observable("$xwiki.getDocument($services.confluencemigrator.profile.activeProfile).getValue('space')");
+    this.includedSpaces = ko.observable($('#includedSpaces').data().valuefromprofile);
     this.excludedObjectClasses = ko.observable('XWiki.XWikiUsers,XWiki.XWikiSkins,Panels.PanelClass,Blog.BlogClass,Blog.BlogPostClass,Blog.CategoryClass,ColorThemes.ColorThemeClass,FlamingoThemesCode.ThemeClass,IconThemesCode.IconThemeClass,XWiki.SchedulerJobClass,Menu.MenuClass,XWiki.RedirectClass');
     this.excludedObjectClasses.extend({ notify: 'always' });
   }
@@ -1154,7 +1154,7 @@ The Nested Spaces Migrator 0.8 is currently incompatible with the Confluence Mig
       <name>Live view</name>
     </property>
     <property>
-      <parse>1</parse>
+      <parse>0</parse>
     </property>
     <property>
       <use>currentPage</use>
