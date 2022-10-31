@@ -506,7 +506,8 @@ The Nested Spaces Migrator 0.8 is currently incompatible with the Confluence Mig
       <cache>long</cache>
     </property>
     <property>
-      <code>require(['jquery', 'xwiki-meta', 'knockout'], function ($, xm, ko) {
+      <code>require(['jquery'], function ($) {
+require(['xwiki-meta', 'knockout'], function (xm, ko) {
   'use strict';
 
   function localSerializer(document) {
@@ -1147,6 +1148,7 @@ The Nested Spaces Migrator 0.8 is currently incompatible with the Confluence Mig
 
   // Activates knockout.js
   ko.applyBindings(new AppViewModel());
+});
 });
 </code>
     </property>
