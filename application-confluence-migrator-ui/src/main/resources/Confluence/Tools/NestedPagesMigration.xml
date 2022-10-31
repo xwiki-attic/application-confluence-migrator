@@ -507,648 +507,648 @@ The Nested Spaces Migrator 0.8 is currently incompatible with the Confluence Mig
     </property>
     <property>
       <code>require(['jquery'], function ($) {
-require(['xwiki-meta', 'knockout'], function (xm, ko) {
-  'use strict';
+  require(['xwiki-meta', 'knockout'], function (xm, ko) {
+    'use strict';
 
-  function localSerializer(document) {
-    var documentReference = XWiki.Model.resolve(document, XWiki.EntityType.DOCUMENT).relativeTo(xm.documentReference.extractReference(XWiki.EntityType.WIKI));
-    return XWiki.Model.serialize(documentReference);
-  }
-  
-  function resolveLocally(document) {
-    return XWiki.Model.resolve(document, XWiki.EntityType.DOCUMENT).relativeTo(xm.documentReference.extractReference(XWiki.EntityType.WIKI));
-  }
-  
-  /**
-   * Class representing a migration action
-   */
-  function MigrationAction(source, target, parent) {
-    var self = this;
-    
-    self.parent          = parent;
-    self.sourceDocument  = resolveLocally(source);
-    self.targetDocument  = resolveLocally(target);
-    self.children        = ko.observableArray();
-    self.displayChildren = ko.observable(false);
-    self.enabled         = ko.observable(true);
-    self.preferences     = [];
-    self.rights          = [];
-    self.deletePrevious  = false;
-    self.localReferenceMaxLength = $('#excludedObjectClasses').data().localreferencemaxlength;
-    
-    self.serializedSourceDocument = function () {
-      return XWiki.Model.serialize(self.sourceDocument);
-    };
-    
-    self.serializedTargetDocument = function () {
-      return XWiki.Model.serialize(self.targetDocument);
-    };
-    
-    self.getNumberOfChildren = function () {
-      var number = self.children().length;
-      for (var i = 0; i &lt; self.children().length; ++i) {
-        number += self.children()[i].getNumberOfChildren();
-      }
-      return number;
-    };
-    
-    self.getTargetName = function () {
-      return self.targetDocument.getName() == 'WebHome' ? self.targetDocument.parent.getName() : self.targetDocument.getName();
+    function localSerializer(document) {
+      var documentReference = XWiki.Model.resolve(document, XWiki.EntityType.DOCUMENT).relativeTo(xm.documentReference.extractReference(XWiki.EntityType.WIKI));
+      return XWiki.Model.serialize(documentReference);
     }
-    
-    self.isTooLong = function () {
-      return self.serializedTargetDocument().length &gt; self.localReferenceMaxLength;
-    }
-    
-    self.getSourceLink = function () {
-      return new XWiki.Document(self.sourceDocument).getURL();
-    }
-    
-    self.toggleDisplayChildren = function() {
-      self.displayChildren(!self.displayChildren());
-    }
-    
-    self.disableChildren = function () {
-      for (var i = 0; i &lt; self.children().length; ++i) {
-        self.children()[i].enabled(false);
-      }
-      for (var i = 0; i &lt; self.preferences.length; ++i) {
-        self.preferences[i].enabled(false);
-      }
-      for (var i = 0; i &lt; self.rights.length; ++i) {
-        self.rights[i].enabled(false);
-      }
-    };
-    
-    self.enabled.subscribe(function (newValue) {
-      if (!newValue) {
-        self.disableChildren();
-      }
-    });
-    
-    self.enableWithChildren = function() {
-      self.enabled(true);
-      for (var i = 0; i &lt; self.preferences.length; ++i) {
-        self.preferences[i].enabled(true);
-      }
-      for (var i = 0; i &lt; self.rights.length; ++i) {
-        self.rights[i].enabled(true);
-      }
-      for (var i = 0; i &lt; self.children().length; ++i) {
-        self.children()[i].enableWithChildren();
-      }
-    }
-    
-    self.getNumberOfPreferences = function () {
-      return self.preferences.length;
-    }
-    
-    self.getNumberOfRights = function () {
-      return self.rights.length;
-    }
-  }
-  
-  /**
-   * Class representing a preference.
-   */
-  function Preference(property, value, origin) {
-    var self = this;
-    
-    self.property = property;
-    self.value    = value;
-    self.origin   = origin;
-    self.enabled  = ko.observable(true);
-    
-    self.getSerializedOrigin = function () {
-      return localSerializer(self.origin);
-    };
-    
-    self.getOriginLink = function () {
-      return new XWiki.Document(resolveLocally(self.origin)).getURL('admin');
-    };
-  }
-  
-  /**
-   * Class representing a right.
-   */
-  function Right(user, group, level, allow, origin) {
-    var self = this;
-    
-    self.user   = user;
-    self.group  = group;
-    self.level  = level;
-    self.allow  = allow;
-    self.origin = origin;
-    self.enabled  = ko.observable(true);
-    
-    self.getType = function () {
-      return self.user ? 'user' : 'group';
-    };
-    
-    self.getTarget = function () {
-      return self.user ? self.user : self.group;
-    };
-    
-    self.getAllow = function () {
-      return self.allow ? 'allow' : 'deny';
-    };
-    
-    self.toString = function () {
-      return self.getType() + ' : ' + self.getTarget() + ', ' + self.level + ' : ' + self.getAllow();
-    };
-    
-    self.getSerializedOrigin = function () {
-      return localSerializer(self.origin);
-    };
-    
-    self.getOriginLink = function () {
-      var ref = resolveLocally(self.origin);
-      return new XWiki.Document(ref).getURL('admin', ref.name == 'WebPreferences' ? 'section=PageAndChildrenRights' : 'section=Rights');
-    };
-  }
-  
-  /**
-   * Represent a breakage between location parent and actual parent
-   */
-  function Breakage(document, locationParent, actualParent) {
-    var self = this;
-    self.document       = document;
-    self.locationParent = locationParent;
-    self.actualParent   = actualParent;
-  }
 
-  /**
-   * Class holding the configuration used to compute the plan.
-   */
-  function AppConfiguration() {
-    this.excludeHiddenPages    = ko.observable(true);
-    this.excludeClassPages     = ko.observable(true);
-    this.dontMoveChildren      = ko.observable(false);
-    this.addRedirection        = ko.observable(false);
-    this.convertPreferences    = ko.observable(true);
-    this.convertRights         = ko.observable(false);
-    this.excludedPages         = ko.observable('');
-    this.excludedSpaces        = ko.observable();
-    this.includedSpaces = ko.observable($('#includedSpaces').data().valuefromprofile);
-    this.excludedObjectClasses = ko.observable('XWiki.XWikiUsers,XWiki.XWikiSkins,Panels.PanelClass,Blog.BlogClass,Blog.BlogPostClass,Blog.CategoryClass,ColorThemes.ColorThemeClass,FlamingoThemesCode.ThemeClass,IconThemesCode.IconThemeClass,XWiki.SchedulerJobClass,Menu.MenuClass,XWiki.RedirectClass');
-    this.excludedObjectClasses.extend({ notify: 'always' });
-  }
-      
-  function getExcludedClassesArray(model) {
-    return model.configuration.excludedObjectClasses().split(',');
-  }
-  
-  function inExcludedClassesArray(name, model) {
-    return $.inArray(name, getExcludedClassesArray(model)) &gt;= 0;
-  }
-  
-  function appendToString(string, toAppend) {
-    var result = string;
-    if (result.length &gt; 0) {
-      result += ',';
+    function resolveLocally(document) {
+      return XWiki.Model.resolve(document, XWiki.EntityType.DOCUMENT).relativeTo(xm.documentReference.extractReference(XWiki.EntityType.WIKI));
     }
-    result += toAppend;
-    return result;
-  }
-  
-  function computeNewExcludedClassesList(name, value, model) {
-    var newList = '';
-    var oldList = getExcludedClassesArray(model);
-    // We walk through the old list to respect the order written in it to avoid a WTF effect
-    for (var i = 0; i &lt; oldList.length; ++i) {
-      if (oldList[i] != name) {
-        newList = appendToString(newList, oldList[i]);
+
+    /**
+     * Class representing a migration action
+     */
+    function MigrationAction(source, target, parent) {
+      var self = this;
+
+      self.parent          = parent;
+      self.sourceDocument  = resolveLocally(source);
+      self.targetDocument  = resolveLocally(target);
+      self.children        = ko.observableArray();
+      self.displayChildren = ko.observable(false);
+      self.enabled         = ko.observable(true);
+      self.preferences     = [];
+      self.rights          = [];
+      self.deletePrevious  = false;
+      self.localReferenceMaxLength = $('#excludedObjectClasses').data().localreferencemaxlength;
+
+      self.serializedSourceDocument = function () {
+        return XWiki.Model.serialize(self.sourceDocument);
+      };
+
+      self.serializedTargetDocument = function () {
+        return XWiki.Model.serialize(self.targetDocument);
+      };
+
+      self.getNumberOfChildren = function () {
+        var number = self.children().length;
+        for (var i = 0; i &lt; self.children().length; ++i) {
+          number += self.children()[i].getNumberOfChildren();
+        }
+        return number;
+      };
+
+      self.getTargetName = function () {
+        return self.targetDocument.getName() == 'WebHome' ? self.targetDocument.parent.getName() : self.targetDocument.getName();
+      }
+
+      self.isTooLong = function () {
+        return self.serializedTargetDocument().length &gt; self.localReferenceMaxLength;
+      }
+
+      self.getSourceLink = function () {
+        return new XWiki.Document(self.sourceDocument).getURL();
+      }
+
+      self.toggleDisplayChildren = function() {
+        self.displayChildren(!self.displayChildren());
+      }
+
+      self.disableChildren = function () {
+        for (var i = 0; i &lt; self.children().length; ++i) {
+          self.children()[i].enabled(false);
+        }
+        for (var i = 0; i &lt; self.preferences.length; ++i) {
+          self.preferences[i].enabled(false);
+        }
+        for (var i = 0; i &lt; self.rights.length; ++i) {
+          self.rights[i].enabled(false);
+        }
+      };
+
+      self.enabled.subscribe(function (newValue) {
+        if (!newValue) {
+          self.disableChildren();
+        }
+      });
+
+      self.enableWithChildren = function() {
+        self.enabled(true);
+        for (var i = 0; i &lt; self.preferences.length; ++i) {
+          self.preferences[i].enabled(true);
+        }
+        for (var i = 0; i &lt; self.rights.length; ++i) {
+          self.rights[i].enabled(true);
+        }
+        for (var i = 0; i &lt; self.children().length; ++i) {
+          self.children()[i].enableWithChildren();
+        }
+      }
+
+      self.getNumberOfPreferences = function () {
+        return self.preferences.length;
+      }
+
+      self.getNumberOfRights = function () {
+        return self.rights.length;
       }
     }
-    if (value) {
-      newList = appendToString(newList, name);
+
+    /**
+     * Class representing a preference.
+     */
+    function Preference(property, value, origin) {
+      var self = this;
+
+      self.property = property;
+      self.value    = value;
+      self.origin   = origin;
+      self.enabled  = ko.observable(true);
+
+      self.getSerializedOrigin = function () {
+        return localSerializer(self.origin);
+      };
+
+      self.getOriginLink = function () {
+        return new XWiki.Document(resolveLocally(self.origin)).getURL('admin');
+      };
     }
-    model.configuration.excludedObjectClasses(newList);
-  }
-  
-  function initXClassCheckbox(name, model) {
-    var selected = ko.computed({
-      read: function () {
-        return inExcludedClassesArray(name, model);
-      },
-      write: function (value) {
-        computeNewExcludedClassesList(name, value, model);
+
+    /**
+     * Class representing a right.
+     */
+    function Right(user, group, level, allow, origin) {
+      var self = this;
+
+      self.user   = user;
+      self.group  = group;
+      self.level  = level;
+      self.allow  = allow;
+      self.origin = origin;
+      self.enabled  = ko.observable(true);
+
+      self.getType = function () {
+        return self.user ? 'user' : 'group';
+      };
+
+      self.getTarget = function () {
+        return self.user ? self.user : self.group;
+      };
+
+      self.getAllow = function () {
+        return self.allow ? 'allow' : 'deny';
+      };
+
+      self.toString = function () {
+        return self.getType() + ' : ' + self.getTarget() + ', ' + self.level + ' : ' + self.getAllow();
+      };
+
+      self.getSerializedOrigin = function () {
+        return localSerializer(self.origin);
+      };
+
+      self.getOriginLink = function () {
+        var ref = resolveLocally(self.origin);
+        return new XWiki.Document(ref).getURL('admin', ref.name == 'WebPreferences' ? 'section=PageAndChildrenRights' : 'section=Rights');
+      };
+    }
+
+    /**
+     * Represent a breakage between location parent and actual parent
+     */
+    function Breakage(document, locationParent, actualParent) {
+      var self = this;
+      self.document       = document;
+      self.locationParent = locationParent;
+      self.actualParent   = actualParent;
+    }
+
+    /**
+     * Class holding the configuration used to compute the plan.
+     */
+    function AppConfiguration() {
+      this.excludeHiddenPages    = ko.observable(true);
+      this.excludeClassPages     = ko.observable(true);
+      this.dontMoveChildren      = ko.observable(false);
+      this.addRedirection        = ko.observable(false);
+      this.convertPreferences    = ko.observable(true);
+      this.convertRights         = ko.observable(false);
+      this.excludedPages         = ko.observable('');
+      this.excludedSpaces        = ko.observable();
+      this.includedSpaces = ko.observable($('#includedSpaces').data().valuefromprofile);
+      this.excludedObjectClasses = ko.observable('XWiki.XWikiUsers,XWiki.XWikiSkins,Panels.PanelClass,Blog.BlogClass,Blog.BlogPostClass,Blog.CategoryClass,ColorThemes.ColorThemeClass,FlamingoThemesCode.ThemeClass,IconThemesCode.IconThemeClass,XWiki.SchedulerJobClass,Menu.MenuClass,XWiki.RedirectClass');
+      this.excludedObjectClasses.extend({ notify: 'always' });
+    }
+
+    function getExcludedClassesArray(model) {
+      return model.configuration.excludedObjectClasses().split(',');
+    }
+
+    function inExcludedClassesArray(name, model) {
+      return $.inArray(name, getExcludedClassesArray(model)) &gt;= 0;
+    }
+
+    function appendToString(string, toAppend) {
+      var result = string;
+      if (result.length &gt; 0) {
+        result += ',';
       }
-    });
-    return {'name': name, 'selected': selected};
-  }
+      result += toAppend;
+      return result;
+    }
 
-  /**
-   * Represents a log entry.
-   */
-  function Log(message, level, stackTrace) {
-    var self = this;
-    
-    self.message    = message;
-    self.level      = level;
-    self.stackTrace = stackTrace;
-
-    self.getClass = function () {
-      return 'log-item-' + self.level.toLowerCase();
-    }
-  }
-
-  /**
-   * The model of the application. All data and functions used by the application view are stored here.
-   */
-  function AppViewModel() {
-    var self = this;
-    
-    // Fields
-    self.configuration     = new AppConfiguration();
-    self.actions           = ko.observableArray();
-    self.isPlanRequested   = ko.observable(false);
-    self.isBreakageListRequested = ko.observable(false);
-    self.isComputing       = ko.observable(false);
-    self.xclasses          = ko.observableArray();
-    self.xclassListVisible = ko.observable(false);
-    self.jobId             = false;
-    self.progress          = ko.observable(0);
-    self.logs              = ko.observableArray();
-    self.isPlanExecuting   = ko.observable(false);
-    self.success           = ko.observable(false);
-    self.duplicates        = ko.observableArray();
-    self.tooLongs          = ko.observableArray();
-    self.breakageList      = ko.observableArray();
-    
-    // Do not refresh logs and actions too often (to get better performances, because a lot of actions and logs
-    // are pushed in the same time, so it is better to no refresh the UI at every push).
-    self.logs.extend({ rateLimit: 200});
-    self.actions.extend({ rateLimit: 200});
-    
-    self.toggleXClassList = function () {
-      self.xclassListVisible(!self.xclassListVisible());
-    }
-    
-    self.showXClassList = function () {
-      self.xclassListVisible(true);
-    }
-    
-    self.hideXClassList = function () {
-      self.xclassListVisible(false);
-    }
-    
-    self.getExcludedClassesArray = function () {
-      return self.configuration.excludedObjectClasses().split(',');
-    }
-    
-    self.inExcludedClassesArray = function() {
-      return $.inArray(name, self.getExcludedClassesArray()) &gt;= 0;
-    }
-    
-    self.computeNewExcludedClassesList = function (name, value) {
+    function computeNewExcludedClassesList(name, value, model) {
       var newList = '';
-      var oldList = self.getExcludedClassesArray();
+      var oldList = getExcludedClassesArray(model);
       // We walk through the old list to respect the order written in it to avoid a WTF effect
       for (var i = 0; i &lt; oldList.length; ++i) {
         if (oldList[i] != name) {
-          if (newList.length &gt; 0) {
-            newList += ',';
-          }
-          newList += oldList[i];
+          newList = appendToString(newList, oldList[i]);
         }
       }
       if (value) {
-        if (newList.length &gt; 0) {
-          newList += ',';
-        }
-        newList += name;;
+        newList = appendToString(newList, name);
       }
-      self.configuration.excludedObjectClasses(newList);
+      model.configuration.excludedObjectClasses(newList);
     }
-    
-    self.initXClassCheckbox = function (name) {
+
+    function initXClassCheckbox(name, model) {
       var selected = ko.computed({
         read: function () {
-          return inExcludedClassesArray(name, self);
+          return inExcludedClassesArray(name, model);
         },
         write: function (value) {
-          computeNewExcludedClassesList(name, value, self);
+          computeNewExcludedClassesList(name, value, model);
         }
       });
       return {'name': name, 'selected': selected};
     }
-    
+
     /**
-     * Initialize the XClasses fields.
+     * Represents a log entry.
      */
-    self.initXClasses = function() {
-      var xclasses = $('#excludedObjectClasses').attr('data-xclasses').split(',');
-      for (var i = 0; i &lt; xclasses.length; ++i) {
-        self.xclasses.push(initXClassCheckbox(xclasses[i], self));
+    function Log(message, level, stackTrace) {
+      var self = this;
+
+      self.message    = message;
+      self.level      = level;
+      self.stackTrace = stackTrace;
+
+      self.getClass = function () {
+        return 'log-item-' + self.level.toLowerCase();
       }
     }
 
     /**
-     * Computed observable variable that returns if the plan is empty.
+     * The model of the application. All data and functions used by the application view are stored here.
      */
-    self.isPlanEmpty = ko.computed(function () {
-      return self.actions().length == 0;
-    });
-    
-    /**
-     * Send an ajax request to start a new job for the creation of a plan or the breakage detection
-     */
-    self.startComputationJob = function (action, callback) {
-      self.progress(0);
-      self.isComputing(true);
-      self.actions.removeAll();
-      self.duplicates.removeAll();
-      self.tooLongs.removeAll();
-      self.breakageList.removeAll();
-      $.getJSON(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
-          'action'               : action,
-          'excludeHiddenPages'   : self.configuration.excludeHiddenPages(),
-          'excludeClassPages'    : self.configuration.excludeClassPages(),
-          'dontMoveChildren'     : self.configuration.dontMoveChildren(),
-          'addRedirection'       : self.configuration.addRedirection(),
-          'convertPreferences'   : self.configuration.convertPreferences(),
-          'convertRights'        : self.configuration.convertRights(),
-          'excludedPages'        : self.configuration.excludedPages(),
-          'excludedSpaces'       : self.configuration.excludedSpaces(),
-          'includedSpaces'       : self.configuration.includedSpaces(),
-          'excludedObjectClasses': self.configuration.excludedObjectClasses()
-        })
-        .done(callback)
-        .fail(function () {
-          console.log(action == 'startBreakageDetection' ? 'ERROR: Failed to start the breakage detection.'
-            : 'ERROR: Failed to start a new plan computation.' );
+    function AppViewModel() {
+      var self = this;
+
+      // Fields
+      self.configuration     = new AppConfiguration();
+      self.actions           = ko.observableArray();
+      self.isPlanRequested   = ko.observable(false);
+      self.isBreakageListRequested = ko.observable(false);
+      self.isComputing       = ko.observable(false);
+      self.xclasses          = ko.observableArray();
+      self.xclassListVisible = ko.observable(false);
+      self.jobId             = false;
+      self.progress          = ko.observable(0);
+      self.logs              = ko.observableArray();
+      self.isPlanExecuting   = ko.observable(false);
+      self.success           = ko.observable(false);
+      self.duplicates        = ko.observableArray();
+      self.tooLongs          = ko.observableArray();
+      self.breakageList      = ko.observableArray();
+
+      // Do not refresh logs and actions too often (to get better performances, because a lot of actions and logs
+      // are pushed in the same time, so it is better to no refresh the UI at every push).
+      self.logs.extend({ rateLimit: 200});
+      self.actions.extend({ rateLimit: 200});
+
+      self.toggleXClassList = function () {
+        self.xclassListVisible(!self.xclassListVisible());
+      }
+
+      self.showXClassList = function () {
+        self.xclassListVisible(true);
+      }
+
+      self.hideXClassList = function () {
+        self.xclassListVisible(false);
+      }
+
+      self.getExcludedClassesArray = function () {
+        return self.configuration.excludedObjectClasses().split(',');
+      }
+
+      self.inExcludedClassesArray = function() {
+        return $.inArray(name, self.getExcludedClassesArray()) &gt;= 0;
+      }
+
+      self.computeNewExcludedClassesList = function (name, value) {
+        var newList = '';
+        var oldList = self.getExcludedClassesArray();
+        // We walk through the old list to respect the order written in it to avoid a WTF effect
+        for (var i = 0; i &lt; oldList.length; ++i) {
+          if (oldList[i] != name) {
+            if (newList.length &gt; 0) {
+              newList += ',';
+            }
+            newList += oldList[i];
+          }
+        }
+        if (value) {
+          if (newList.length &gt; 0) {
+            newList += ',';
+          }
+          newList += name;;
+        }
+        self.configuration.excludedObjectClasses(newList);
+      }
+
+      self.initXClassCheckbox = function (name) {
+        var selected = ko.computed({
+          read: function () {
+            return inExcludedClassesArray(name, self);
+          },
+          write: function (value) {
+            computeNewExcludedClassesList(name, value, self);
+          }
         });
-    }
+        return {'name': name, 'selected': selected};
+      }
 
-    /**
-     * Send an ajax request to start a new job for the creation of a plan.
-     */
-    self.computePlan = function() {
-      self.isPlanRequested(true);
-      self.isBreakageListRequested(false);
-      self.startComputationJob('createPlan', function (data) {
-        self.jobId = data.jobId;
-        self.logs.removeAll();
-        self.getJobStatusAndLogs('createmigrationplan', function() { self.getMigrationPlan(); });
-      });
-    };
-    
-    /**
-     * Perform an AJAX request to get the current job status and its logs, so we can update the progress bar and the 
-     * logs UI.
-     */
-    self.getJobStatusAndLogs = function (jobAction, successCallback) {
-      $.getJSON(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
-        'action' : 'printStatusAndLogs',
-        'jobAction' : jobAction
-      }).done(function (data) {
-        var logs = data.logs;
-        for (var i = self.logs().length; i &lt; logs.length; ++i) {
-          self.logs.push(new Log(logs[i].message, logs[i].level, logs[i].stackTrace));
-        }
-        var state = data.state;
-        if (state == 'FINISHED') {
-          self.progress(100);
-          if (successCallback) {
-            successCallback();
-          }
-        } else if (state == 'RUNNING' || state == 'NONE') {
-          self.progress(data.progress * 100);
-          // retry in 0.8 seconds
-          setTimeout(function() { self.getJobStatusAndLogs(jobAction, successCallback); }, 800);
-        }
-      });
-    };
-
-    /**
-     * Get the migration plan that have been computed, in order to display it.
-     */
-    self.getMigrationPlan = function () {
-      $.getJSON(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
-        'action': 'printPlan'
-      }).done(function (data) {
-        console.log('INFO: Plan computed');
-        var parseAction = function (data, parent) {
-          var action = new MigrationAction(data.sourceDocument, data.targetDocument, parent);
-          if (data.children) {
-            for (var i = 0; i &lt; data.children.length; ++i) {
-              action.children.push(parseAction(data.children[i], action));
-            }
-          }
-          if (data.preferences) {
-            for (var i = 0; i &lt; data.preferences.length; ++i) {
-              action.preferences[action.preferences.length] = new Preference(data.preferences[i].name, data.preferences[i].value, data.preferences[i].origin);
-            }
-          }
-          if (data.rights) {
-            for (var i = 0; i &lt; data.rights.length; ++i) {
-              action.rights[action.rights.length] = new Right(data.rights[i].user, data.rights[i].group, data.rights[i].level, data.rights[i].allow == "true", data.rights[i].origin)
-            }
-          }
-          if (data.deletePrevious) {
-            action.deletePrevious = true;
-            self.duplicates.push(action.serializedTargetDocument());
-          }
-          if (action.isTooLong()) {
-            self.tooLongs.push(action);
-          }
-          return action;
-        };
-
-        if (data) {
-          for (var i = 0; i &lt; data.length; ++i) {
-            self.actions.push(parseAction(data[i], false));
-          }
-        }
-        // Plan is loaded
-        self.isComputing(false);
-        console.log('INFO: Plan have been parsed.');
-      }).fail(function () {
-        new XWiki.widgets.Notification('Failed to load the computed plan', 'error');
-        //TODO: being able to restart the computation
-      });
-    };
-    
-    self.startBreakageDetection = function () {
-      self.isPlanRequested(false);
-      self.isBreakageListRequested(true);
-      self.startComputationJob('startBreakageDetection', function (data) {
-        self.jobId = data.jobId;
-        self.logs.removeAll();
-        self.getJobStatusAndLogs('breakagedetection', function() { self.getBreakages(); });
-      });
-    };
-    
-    /**
-     * Get breakage list that have been computed, in order to display it.
-     */
-    self.getBreakages = function () {
-      $.getJSON(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
-        'action': 'printBreakages'
-      }).done(function (data) {
-        for (var i = 0; i &lt; data.length; ++i) {
-          self.breakageList.push(new Breakage(data[i].documentReference, data[i].locationParent, data[i].actualParent));
-        }
-        // Plan is loaded
-        self.isComputing(false);
-      }).fail(function () {
-        new XWiki.widgets.Notification('Failed to load the breakages', 'error');
-        //TODO: being able to restart the computation
-      });
-    };
-    
-    /**
-     * Called when the user click on the "exclude page" button.
-     */
-    self.excludePage = function() {
-      var page = this.serializedSourceDocument();
-      if (confirm('Are you sure to exclude the page ['+page+'] from the migration? The plan may be recomputed.')) {
-        self.configuration.excludedPages(appendToString(self.configuration.excludedPages(), page));
-        // Adding an exclusion can seriously change the plan (if children are moved), so we re-compute it
-        if (!self.configuration.dontMoveChildren()) {
-          self.computePlan();
-        } else {
-          var sourceDoc = this.sourceDocument;
-          var detectAction = function (action) {
-            return action.sourceDocument.equals(sourceDoc);
-          };
-          if (this.parent) {
-            this.parent.children.remove(detectAction);
-          } else {
-            self.actions.remove(detectAction);
-          }
+      /**
+       * Initialize the XClasses fields.
+       */
+      self.initXClasses = function() {
+        var xclasses = $('#excludedObjectClasses').attr('data-xclasses').split(',');
+        for (var i = 0; i &lt; xclasses.length; ++i) {
+          self.xclasses.push(initXClassCheckbox(xclasses[i], self));
         }
       }
-    };
 
-    /**
-     * Called when the user click on the "exclude space" button.
-     */
-    self.excludeSpace = function() {
-      var space = XWiki.Model.serialize(this.sourceDocument.extractReference(XWiki.EntityType.SPACE));
-      if (confirm('Are you sure to exclude the space ['+space+'] from the migration? The plan will be recomputed.')) {
-        self.configuration.excludedSpaces(appendToString(self.configuration.excludedSpaces(), space));
-        self.computePlan();
-      }
-    };
+      /**
+       * Computed observable variable that returns if the plan is empty.
+       */
+      self.isPlanEmpty = ko.computed(function () {
+        return self.actions().length == 0;
+      });
 
-    /**
-     * Called when the user click on the "set parent" button.
-     */
-    self.setParent = function () {
-      // The reference needs to be complete in order to use XWiki.Document#getRestURL()
-      if (this.sourceDocument.getRoot().type != XWiki.EntityType.WIKI) {
-        this.sourceDocument.appendParent(xm.documentReference.extractReference(XWiki.EntityType.WIKI))
-      };
-      // First get the current parent
-      var restURL = new XWiki.Document(this.sourceDocument).getRestURL('', 'media=json');
-      var notification = new XWiki.widgets.Notification('Getting information', 'inprogress');
-      $.getJSON(restURL).done(function (data) {
-        notification.hide();
-        // Now ask the new parent to set
-        var parent = prompt("Enter the fullName of the parent that you want to set: (this will be applied immediatly)", data.parent);
-        if (parent != null) {
-          notification = new XWiki.widgets.Notification('Saving...', 'inprogress');
-          // Set the new parent using the REST API
-          $.ajax(restURL, {
-            dataType: 'json',
-            data:   {'parent': parent},
-            method: 'PUT'
-          }).done(function(data) {
-            // TODO: put something here, and handle error;
-            self.computePlan();
-            notification.replace(new XWiki.widgets.Notification('New parent was set, computing the new plan.', 'done'));
-          }).fail(function() {
-            notification.replace(new XWiki.widgets.Notification('Failed to save the page.', 'error'));
-          });
-        }
-      }).fail(function() {
-        notification.replace(new XWiki.widgets.Notification('Failed to get the current parent of the page which may not exist.', 'error'));
-      });
-    };
-    
-    /**
-     * Called when the user clicks on "execute plan"
-     */
-    self.executePlan = function () {
-      if (!confirm('Are you sure? This operation cannot be undone.')) {
-        return;
-      }
-      self.isPlanExecuting(true);
-      self.progress(0);
-      
-      var getDisabledActions = function (action) {
-        var disabledActions = '';
-        if (!action.enabled()) {
-          disabledActions += action.serializedSourceDocument() + '_page,';
-        }
-        for (var i = 0; i &lt; action.preferences.length; ++i) {
-          var preference = action.preferences[i];
-          if (!preference.enabled()) {
-            disabledActions += action.serializedSourceDocument() + '_preference_' + i + ',';
-          }
-        }
-        for (var i = 0; i &lt; action.rights.length; ++i) {
-          var right = action.rights[i];
-          if (!right.enabled()) {
-            disabledActions += action.serializedSourceDocument() + '_right_' + i + ',';
-          }
-        }
-        for (var i = 0; i &lt; action.children().length; ++i) {
-          disabledActions += getDisabledActions(action.children()[i]);
-        }
-        return disabledActions;
-      };
-      
-      var disabledActions = '';
-      for (var i = 0; i &lt; self.actions().length; ++i) {
-        var action = self.actions()[i];
-        disabledActions += getDisabledActions(action);
-      }
-      
-      $.ajax(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
-        'data': {
-          'action'               : 'executePlan',
-          'addRedirection'       : self.configuration.addRedirection(),
-          'disabledActions'      : disabledActions
-        },
-        'method': 'POST',
-        'data-type': 'json'
-      }).done(function (data) {
-        self.jobId = data.jobId;
-        self.logs.removeAll();
-        self.getJobStatusAndLogs('executemigrationplan', function() { self.success(true); });
-      }).fail(function () {
-        console.log('ERROR: Failed to execute the plan.');
-      });
-    }
-    
-    /**
-     * Clean the plan to free the memory on the server.
-     */
-    self.cleanPlan = function() {
-      $.ajax(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
-        'data': {
-          'action': 'cleanPlan'},
-        'method': 'POST'
-      }).done(function() {
+      /**
+       * Send an ajax request to start a new job for the creation of a plan or the breakage detection
+       */
+      self.startComputationJob = function (action, callback) {
+        self.progress(0);
+        self.isComputing(true);
         self.actions.removeAll();
         self.duplicates.removeAll();
         self.tooLongs.removeAll();
-        self.isPlanRequested(false);
-        self.logs.removeAll();
-      });
-    };
-    
-    // Initialize the XClasses field.
-    self.initXClasses();
-    
-  };
+        self.breakageList.removeAll();
+        $.getJSON(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
+            'action'               : action,
+            'excludeHiddenPages'   : self.configuration.excludeHiddenPages(),
+            'excludeClassPages'    : self.configuration.excludeClassPages(),
+            'dontMoveChildren'     : self.configuration.dontMoveChildren(),
+            'addRedirection'       : self.configuration.addRedirection(),
+            'convertPreferences'   : self.configuration.convertPreferences(),
+            'convertRights'        : self.configuration.convertRights(),
+            'excludedPages'        : self.configuration.excludedPages(),
+            'excludedSpaces'       : self.configuration.excludedSpaces(),
+            'includedSpaces'       : self.configuration.includedSpaces(),
+            'excludedObjectClasses': self.configuration.excludedObjectClasses()
+          })
+          .done(callback)
+          .fail(function () {
+            console.log(action == 'startBreakageDetection' ? 'ERROR: Failed to start the breakage detection.'
+              : 'ERROR: Failed to start a new plan computation.' );
+          });
+      }
 
-  // Activates knockout.js
-  ko.applyBindings(new AppViewModel());
-});
+      /**
+       * Send an ajax request to start a new job for the creation of a plan.
+       */
+      self.computePlan = function() {
+        self.isPlanRequested(true);
+        self.isBreakageListRequested(false);
+        self.startComputationJob('createPlan', function (data) {
+          self.jobId = data.jobId;
+          self.logs.removeAll();
+          self.getJobStatusAndLogs('createmigrationplan', function() { self.getMigrationPlan(); });
+        });
+      };
+
+      /**
+       * Perform an AJAX request to get the current job status and its logs, so we can update the progress bar and the 
+       * logs UI.
+       */
+      self.getJobStatusAndLogs = function (jobAction, successCallback) {
+        $.getJSON(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
+          'action' : 'printStatusAndLogs',
+          'jobAction' : jobAction
+        }).done(function (data) {
+          var logs = data.logs;
+          for (var i = self.logs().length; i &lt; logs.length; ++i) {
+            self.logs.push(new Log(logs[i].message, logs[i].level, logs[i].stackTrace));
+          }
+          var state = data.state;
+          if (state == 'FINISHED') {
+            self.progress(100);
+            if (successCallback) {
+              successCallback();
+            }
+          } else if (state == 'RUNNING' || state == 'NONE') {
+            self.progress(data.progress * 100);
+            // retry in 0.8 seconds
+            setTimeout(function() { self.getJobStatusAndLogs(jobAction, successCallback); }, 800);
+          }
+        });
+      };
+
+      /**
+       * Get the migration plan that have been computed, in order to display it.
+       */
+      self.getMigrationPlan = function () {
+        $.getJSON(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
+          'action': 'printPlan'
+        }).done(function (data) {
+          console.log('INFO: Plan computed');
+          var parseAction = function (data, parent) {
+            var action = new MigrationAction(data.sourceDocument, data.targetDocument, parent);
+            if (data.children) {
+              for (var i = 0; i &lt; data.children.length; ++i) {
+                action.children.push(parseAction(data.children[i], action));
+              }
+            }
+            if (data.preferences) {
+              for (var i = 0; i &lt; data.preferences.length; ++i) {
+                action.preferences[action.preferences.length] = new Preference(data.preferences[i].name, data.preferences[i].value, data.preferences[i].origin);
+              }
+            }
+            if (data.rights) {
+              for (var i = 0; i &lt; data.rights.length; ++i) {
+                action.rights[action.rights.length] = new Right(data.rights[i].user, data.rights[i].group, data.rights[i].level, data.rights[i].allow == "true", data.rights[i].origin)
+              }
+            }
+            if (data.deletePrevious) {
+              action.deletePrevious = true;
+              self.duplicates.push(action.serializedTargetDocument());
+            }
+            if (action.isTooLong()) {
+              self.tooLongs.push(action);
+            }
+            return action;
+          };
+
+          if (data) {
+            for (var i = 0; i &lt; data.length; ++i) {
+              self.actions.push(parseAction(data[i], false));
+            }
+          }
+          // Plan is loaded
+          self.isComputing(false);
+          console.log('INFO: Plan have been parsed.');
+        }).fail(function () {
+          new XWiki.widgets.Notification('Failed to load the computed plan', 'error');
+          //TODO: being able to restart the computation
+        });
+      };
+
+      self.startBreakageDetection = function () {
+        self.isPlanRequested(false);
+        self.isBreakageListRequested(true);
+        self.startComputationJob('startBreakageDetection', function (data) {
+          self.jobId = data.jobId;
+          self.logs.removeAll();
+          self.getJobStatusAndLogs('breakagedetection', function() { self.getBreakages(); });
+        });
+      };
+
+      /**
+       * Get breakage list that have been computed, in order to display it.
+       */
+      self.getBreakages = function () {
+        $.getJSON(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
+          'action': 'printBreakages'
+        }).done(function (data) {
+          for (var i = 0; i &lt; data.length; ++i) {
+            self.breakageList.push(new Breakage(data[i].documentReference, data[i].locationParent, data[i].actualParent));
+          }
+          // Plan is loaded
+          self.isComputing(false);
+        }).fail(function () {
+          new XWiki.widgets.Notification('Failed to load the breakages', 'error');
+          //TODO: being able to restart the computation
+        });
+      };
+
+      /**
+       * Called when the user click on the "exclude page" button.
+       */
+      self.excludePage = function() {
+        var page = this.serializedSourceDocument();
+        if (confirm('Are you sure to exclude the page ['+page+'] from the migration? The plan may be recomputed.')) {
+          self.configuration.excludedPages(appendToString(self.configuration.excludedPages(), page));
+          // Adding an exclusion can seriously change the plan (if children are moved), so we re-compute it
+          if (!self.configuration.dontMoveChildren()) {
+            self.computePlan();
+          } else {
+            var sourceDoc = this.sourceDocument;
+            var detectAction = function (action) {
+              return action.sourceDocument.equals(sourceDoc);
+            };
+            if (this.parent) {
+              this.parent.children.remove(detectAction);
+            } else {
+              self.actions.remove(detectAction);
+            }
+          }
+        }
+      };
+
+      /**
+       * Called when the user click on the "exclude space" button.
+       */
+      self.excludeSpace = function() {
+        var space = XWiki.Model.serialize(this.sourceDocument.extractReference(XWiki.EntityType.SPACE));
+        if (confirm('Are you sure to exclude the space ['+space+'] from the migration? The plan will be recomputed.')) {
+          self.configuration.excludedSpaces(appendToString(self.configuration.excludedSpaces(), space));
+          self.computePlan();
+        }
+      };
+
+      /**
+       * Called when the user click on the "set parent" button.
+       */
+      self.setParent = function () {
+        // The reference needs to be complete in order to use XWiki.Document#getRestURL()
+        if (this.sourceDocument.getRoot().type != XWiki.EntityType.WIKI) {
+          this.sourceDocument.appendParent(xm.documentReference.extractReference(XWiki.EntityType.WIKI))
+        };
+        // First get the current parent
+        var restURL = new XWiki.Document(this.sourceDocument).getRestURL('', 'media=json');
+        var notification = new XWiki.widgets.Notification('Getting information', 'inprogress');
+        $.getJSON(restURL).done(function (data) {
+          notification.hide();
+          // Now ask the new parent to set
+          var parent = prompt("Enter the fullName of the parent that you want to set: (this will be applied immediatly)", data.parent);
+          if (parent != null) {
+            notification = new XWiki.widgets.Notification('Saving...', 'inprogress');
+            // Set the new parent using the REST API
+            $.ajax(restURL, {
+              dataType: 'json',
+              data:   {'parent': parent},
+              method: 'PUT'
+            }).done(function(data) {
+              // TODO: put something here, and handle error;
+              self.computePlan();
+              notification.replace(new XWiki.widgets.Notification('New parent was set, computing the new plan.', 'done'));
+            }).fail(function() {
+              notification.replace(new XWiki.widgets.Notification('Failed to save the page.', 'error'));
+            });
+          }
+        }).fail(function() {
+          notification.replace(new XWiki.widgets.Notification('Failed to get the current parent of the page which may not exist.', 'error'));
+        });
+      };
+
+      /**
+       * Called when the user clicks on "execute plan"
+       */
+      self.executePlan = function () {
+        if (!confirm('Are you sure? This operation cannot be undone.')) {
+          return;
+        }
+        self.isPlanExecuting(true);
+        self.progress(0);
+
+        var getDisabledActions = function (action) {
+          var disabledActions = '';
+          if (!action.enabled()) {
+            disabledActions += action.serializedSourceDocument() + '_page,';
+          }
+          for (var i = 0; i &lt; action.preferences.length; ++i) {
+            var preference = action.preferences[i];
+            if (!preference.enabled()) {
+              disabledActions += action.serializedSourceDocument() + '_preference_' + i + ',';
+            }
+          }
+          for (var i = 0; i &lt; action.rights.length; ++i) {
+            var right = action.rights[i];
+            if (!right.enabled()) {
+              disabledActions += action.serializedSourceDocument() + '_right_' + i + ',';
+            }
+          }
+          for (var i = 0; i &lt; action.children().length; ++i) {
+            disabledActions += getDisabledActions(action.children()[i]);
+          }
+          return disabledActions;
+        };
+
+        var disabledActions = '';
+        for (var i = 0; i &lt; self.actions().length; ++i) {
+          var action = self.actions()[i];
+          disabledActions += getDisabledActions(action);
+        }
+
+        $.ajax(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
+          'data': {
+            'action'               : 'executePlan',
+            'addRedirection'       : self.configuration.addRedirection(),
+            'disabledActions'      : disabledActions
+          },
+          'method': 'POST',
+          'data-type': 'json'
+        }).done(function (data) {
+          self.jobId = data.jobId;
+          self.logs.removeAll();
+          self.getJobStatusAndLogs('executemigrationplan', function() { self.success(true); });
+        }).fail(function () {
+          console.log('ERROR: Failed to execute the plan.');
+        });
+      }
+
+      /**
+       * Clean the plan to free the memory on the server.
+       */
+      self.cleanPlan = function() {
+        $.ajax(new XWiki.Document('Service', 'NestedPagesMigration').getURL('get', 'outputSyntax=plain'), {
+          'data': {
+            'action': 'cleanPlan'},
+          'method': 'POST'
+        }).done(function() {
+          self.actions.removeAll();
+          self.duplicates.removeAll();
+          self.tooLongs.removeAll();
+          self.isPlanRequested(false);
+          self.logs.removeAll();
+        });
+      };
+
+      // Initialize the XClasses field.
+      self.initXClasses();
+
+    };
+
+    // Activates knockout.js
+    ko.applyBindings(new AppViewModel());
+  });
 });
 </code>
     </property>
