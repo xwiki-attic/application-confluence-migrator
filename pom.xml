@@ -44,9 +44,9 @@
     <tag>HEAD</tag>
   </scm>
   <properties>
-    <confluence.xml.version>9.15.3</confluence.xml.version>
+    <confluence.xml.version>9.16.1</confluence.xml.version>
     <nestedpages.migrator.version>0.7.3</nestedpages.migrator.version>
-    <pro.macros.version>1.5</pro.macros.version>
+    <pro.macros.version>1.6.1</pro.macros.version>
     <smart.wizard.version>5.1.1</smart.wizard.version>
     <macro.job.version>2.0</macro.job.version>
     <listeneradmin.version>1.0.2</listeneradmin.version>
