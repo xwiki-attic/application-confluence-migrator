@@ -302,7 +302,7 @@ public class DefaultConfluenceMigratorProfile implements ConfluenceMigratorProfi
         XWiki xwiki = context.getWiki();
         XWikiDocument migrationDoc = xwiki.getDocument(resolver.resolve(MIGRATION_HOMEPAGE), context);
         for (XWikiAttachment attachment : migrationDoc.getAttachmentList()) {
-            migrationDoc.removeAttachment(attachment);
+            migrationDoc.removeAttachment(attachment, false);
         }
         xwiki.saveDocument(migrationDoc, "Attachments deleted.", context);
     }
