@@ -45,7 +45,6 @@
 === XWiki should be set with very large memory settings, high cache: ===
 
 * $services.icon.render($services.confluencemigrator.prerequisites.checkMemory()) Set -Xmx ($services.confluencemigrator.prerequisites.xmx) and -Xms ($services.confluencemigrator.prerequisites.xms) to at least half the memory of the machine ($mathtool.div($services.confluencemigrator.prerequisites.memory, 2) for $services.confluencemigrator.prerequisites.memory RAM)
-* $services.icon.render($services.confluencemigrator.prerequisites.checkCache()) Set cache (//xwiki.store.cache.capacity//) to 5000 in xwiki.cfg #if($numbertool.toNumber($services.confluencemigrator.prerequisites.cache).intValue() &lt; 5000)(instead of $services.confluencemigrator.prerequisites.cache)#end
 
 === Heavy processes should be disabled: ===
 
@@ -56,12 +55,18 @@
 * $services.icon.render($services.confluencemigrator.prerequisites.checkCurrentUserNotification()) Deactivate notifications on your [[own profile&gt;&gt;path:$xwiki.getURL($xcontext.userReference, 'view', 'category=notifications')||target='_blank']] ("never" for automatic page watching, disable page notifications)
 * $services.icon.render($services.confluencemigrator.prerequisites.checkCurrentUserNotificationCleanup()) Run [[Clean Notifications Preferences&gt;&gt;Confluence.Tools.CleanNotificationsPrefs||target='_blank']] to clean the notifications (optional)
 
-* **Deactivate SOLR and Notifications listeners from XWiki.ListenerAdmin page on main wiki:**
+#set ($searchAdminSectionURL = $xwiki.getURL('XWiki.XWikiPreferences', 'admin', 'editor=globaladmin&amp;section=Search'))
+#set ($solrQueuePrerequisiteIcon = "exclamation")
+#if ($services.solr.getQueueSize() == 0)
+  #set ($solrQueuePrerequisiteIcon = "check")
+#end
+* $services.icon.render($solrQueuePrerequisiteIcon) To minimize migration duration, we recommend to ensure that the Solr queue is empty before starting the migration, 
+check the Solr queue size on the Wiki Administration, [[Solr Search Section&gt;&gt;path:$searchAdminSectionURL||target='_blank']] (optional)
+
+* **Deactivate Notifications listeners from XWiki.ListenerAdmin page on main wiki:**
 #set ($listenerAdminDoc = $xwiki.getDocument('XWiki.ListenerAdmin'))
-#set ($solrIndexURL = $listenerAdminDoc.getURL('view', '#|t=listeners&amp;listenerClass=SolrIndexEventListener'))
 #set ($automaticWatchURL = $listenerAdminDoc.getURL('view', '#|t=listeners&amp;listenerClass=AutomaticWatchModeListener'))
 #set ($liveNotificationURL = $listenerAdminDoc.getURL('view', '#|t=listeners&amp;listenerClass=LiveNotificationEmailListener'))
-** $services.icon.render($services.confluencemigrator.prerequisites.checkListener('org.xwiki.search.solr.internal.SolrIndexEventListener', false)) [[Solr Index Event Listener&gt;&gt;path:$solrIndexURL||target='_blank']] (optional, as this would disable SOLR indexing for the whole farm)
 #set ($documentMovedURL = $listenerAdminDoc.getURL('view', '#|t=listeners&amp;listenerClass=DocumentMovedListener'))
 ** $services.icon.render($services.confluencemigrator.prerequisites.checkListener('org.xwiki.notifications.filters.internal.DocumentMovedListener', true)) [[Document Moved Listener&gt;&gt;path:$documentMovedURL||target='_blank']] (important for large spaces)
 ** $services.icon.render($services.confluencemigrator.prerequisites.checkListener('org.xwiki.notifications.filters.watch.internal.AutomaticWatchModeListener', true)) [[Automatic Watch Mode Listener&gt;&gt;path:$automaticWatchURL||target='_blank']] (important for large spaces)
