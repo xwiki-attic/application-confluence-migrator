@@ -50,6 +50,7 @@
     <smart.wizard.version>5.1.1</smart.wizard.version>
     <macro.job.version>2.0</macro.job.version>
     <listeneradmin.version>1.0.2</listeneradmin.version>
+    <xwiki.enforcer.enforce-javase-dependencies.skip>true</xwiki.enforcer.enforce-javase-dependencies.skip>
   </properties>
   <dependencyManagement>
     <!-- Fix "Require upper bound dependencies error" -->
