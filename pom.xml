@@ -29,7 +29,7 @@
   </parent>
   <groupId>com.xwiki.confluence</groupId>
   <artifactId>application-confluence-migrator</artifactId>
-  <version>1.0.12-SNAPSHOT</version>
+  <version>1.0.12</version>
   <packaging>pom</packaging>
   <name>Confluence Migrator Application - Parent POM</name>
   <description>Migrates content from Confluence to XWiki</description>
@@ -41,7 +41,7 @@
     <connection>scm:git:git://github.com/xwikisas/application-confluence-migrator.git</connection>
     <developerConnection>scm:git:git@github.com:xwikisas/application-confluence-migrator.git</developerConnection>
     <url>https://github.com/xwikisas/application-confluence-migrator/tree/master</url>
-    <tag>HEAD</tag>
+    <tag>application-confluence-migrator-1.0.12</tag>
   </scm>
   <properties>
     <confluence.xml.version>9.20.0</confluence.xml.version>
