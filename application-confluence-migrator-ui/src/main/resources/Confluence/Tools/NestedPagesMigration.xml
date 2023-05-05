@@ -71,6 +71,13 @@ The Nested Spaces Migrator 0.8 is currently incompatible with the Confluence Mig
   You don't have the right to use this tool on this wiki. You need to be administrator.
   {{/error}}
 #else
+## Prepare the space to be migrated by the nested pages migrator (step 6).
+## Basically the confluence space name configured at 
+## Confluence Migrator Level will be escaped according to XWiki SPACE reference syntax,
+## For example, dots '.' on a space name will be replace by '\.'
+#set ($confluenceSpace = $xwiki.getDocument($services.confluencemigrator.profile.activeProfile).getValue('space'))
+#set ($xwikiSpace = $services.model.escape($confluenceSpace, "SPACE"))
+##
 ## Both job.css and extension.css are needed because the ui-progress classes that we need to display
 ## a progress bar are in one of these 2 files depending on the XWiki version
 #set ($discard = $xwiki.ssfx.use('uicomponents/job/job.css', true))
@@ -209,7 +216,7 @@ The Nested Spaces Migrator 0.8 is currently incompatible with the Confluence Mig
 &lt;form class="xform"&gt;
   &lt;div class="row"&gt;
   &lt;div class="col-xs-12 col-md-6"&gt;
-    &lt;input type="hidden" id="includedSpaces" data-bind="value: configuration.includedSpaces" data-valuefromprofile="$!escapetool.xml($xwiki.getDocument($services.confluencemigrator.profile.activeProfile).getValue('space'))"&gt;
+    &lt;input type="hidden" id="includedSpaces" data-bind="value: configuration.includedSpaces" data-valuefromprofile="$!escapetool.xml($xwikiSpace)"&gt;
     &lt;input type="hidden" id="excludedSpaces" data-bind="value: []"&gt;
   &lt;/div&gt;
   &lt;div class="col-xs-12 col-md-6"&gt;
