@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.parent</groupId>
     <artifactId>xwikisas-parent-platform</artifactId>
-    <version>12.10</version>
+    <version>13.10-3</version>
   </parent>
   <groupId>com.xwiki.confluence</groupId>
   <artifactId>application-confluence-migrator</artifactId>
@@ -46,37 +46,12 @@
   <properties>
     <confluence.xml.version>9.20.1</confluence.xml.version>
     <nestedpages.migrator.version>0.7.6</nestedpages.migrator.version>
-    <pro.macros.version>1.6.1</pro.macros.version>
+    <pro.macros.version>1.9.2</pro.macros.version>
     <smart.wizard.version>5.1.1</smart.wizard.version>
     <macro.job.version>2.0</macro.job.version>
     <listeneradmin.version>1.0.2</listeneradmin.version>
     <xwiki.enforcer.enforce-javase-dependencies.skip>true</xwiki.enforcer.enforce-javase-dependencies.skip>
   </properties>
-  <dependencyManagement>
-    <!-- Fix "Require upper bound dependencies error" -->
-    <dependencies>
-      <dependency>
-        <groupId>org.xwiki.platform</groupId>
-        <artifactId>xwiki-platform-model-api</artifactId>
-        <version>${platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.xwiki.platform</groupId>
-        <artifactId>xwiki-platform-rendering-async-default</artifactId>
-        <version>${platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.xwiki.platform</groupId>
-        <artifactId>xwiki-platform-filter-event-user</artifactId>
-        <version>${platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.xwiki.rendering</groupId>
-        <artifactId>xwiki-rendering-wikimodel</artifactId>
-        <version>${rendering.version}</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
   <modules>
     <module>application-confluence-migrator-api</module>
     <module>application-confluence-migrator-ui</module>
